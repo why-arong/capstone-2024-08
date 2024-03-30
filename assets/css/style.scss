@@ -3,6 +3,11 @@
 
 @import "{{ site.theme }}";
 
+.btn {
+  color: #f7a7bb;
+  border-color: #f7a7bb;
+}
+
 .page-header {
   background-color: #000000;
   color: #f7a7bb;

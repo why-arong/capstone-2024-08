@@ -77,11 +77,10 @@ Project is created with:
     <tbody>
         <tr>
           <tr>
-            <td align='center'><a href="https://github.com/anjiwon319 "><img src="https://avatars.githubusercontent.com/u/66212424?v=4" width="100" height="100"></td>
-            <td align='center'><a href="https://github.com/Shin-MG "><img src="https://avatars.githubusercontent.com/u/66138381?v=4" width="100" height="100"></td>
-            <td align='center'><a href="https://github.com/YunHaaaa "><img src="https://avatars.githubusercontent.com/u/63325450?v=4" width="100" height="100"></td>
-            <td align='center'><a href="https://github.com/why-arong"><img src="https://avatars.githubusercontent.com/u/68311908?v=4" width="100" height="100"></td>
-          </tr>
+            <td align='center'><a href="https://github.com/anjiwon319 "><img src="https://avatars.githubusercontent.com/u/66212424?v=4" width="100" height="100">
+            <td align='center'><a href="https://github.com/Shin-MG "><img src="https://avatars.githubusercontent.com/u/66138381?v=4" width="100" height="100">
+            <td align='center'><a href="https://github.com/YunHaaaa "><img src="https://avatars.githubusercontent.com/u/63325450?v=4" width="100" height="100">
+            <td align='center'><a href="https://github.com/why-arong"><img src="https://avatars.githubusercontent.com/u/68311908?v=4" width="100" height="100">
           <tr>
             <td align='center'>안지원</td>
             <td align='center'>신민경</td>
