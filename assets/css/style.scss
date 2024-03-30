@@ -4,10 +4,17 @@
 @import "{{ site.theme }}";
 
 .page-header {
-  background-color: #1f2544;
-  color: #fed0ea;
+  background-color: #000000;
+  color: #f7a7bb;
   text-align: center;
+  background-image: ;
 }
-.main-content {
-  color: #f3acc3;
+
+.main-content h1,
+.main-content h2,
+.main-content h3,
+.main-content h4,
+.main-content h5,
+.main-content h6 {
+  color: #f7a7bb;
 }
