@@ -32,7 +32,7 @@
 
 ## Architecture
 
-<img width="843" alt="image" src="https://github.com/kookmin-sw/capstone-2024-08/assets/66212424/2e998c82-ff8d-43ce-89a1-ef2768c68d1c">
+<img width="845" alt="image" src="https://github.com/kookmin-sw/capstone-2024-08/assets/66212424/2e998c82-ff8d-43ce-89a1-ef2768c68d1c">
 
 <br/>
 <br/>
