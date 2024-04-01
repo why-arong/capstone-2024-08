@@ -1,5 +1,6 @@
 import 'package:capstone/constants/color.dart' as colors;
 import 'package:capstone/constants/text.dart' as texts;
+import 'package:capstone/widget/category_buttons.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -17,6 +18,7 @@ class _ScriptState extends State<Script> {
 
   AppBar scriptAppBar() {
     return AppBar(
+     //backgroundColor: colors.bgrDarkColor,
      leading: Row(
       children: [
         TextButton(
@@ -44,6 +46,7 @@ class _ScriptState extends State<Script> {
         appBar: scriptAppBar(),
         body: Column(
           children: [
+            CategoryButtons(onCategorySelected: (String value) {  },),
             SingleChildScrollView(
 
           )
