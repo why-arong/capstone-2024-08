@@ -19,7 +19,7 @@ jobs:
       - name: Create Issue
         uses: atlassian/gajira-create@v3
         with:
-          project: Loro
+          project: Capstone Design
           issuetype: Task
           summary: "${{ github.event.issue.title }}"
           description: "${{ github.event.issue.html_url }}"
