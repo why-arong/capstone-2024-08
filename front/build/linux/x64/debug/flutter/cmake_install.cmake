@@ -1,8 +1,8 @@
-# Install script for directory: /home/shin/capstone/front/capstone/linux/flutter
+# Install script for directory: /home/shin/capstone/capstone-2024-08/front/linux/flutter
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/home/shin/capstone/front/capstone/build/linux/x64/debug/bundle")
+  set(CMAKE_INSTALL_PREFIX "/home/shin/capstone/capstone-2024-08/front/build/linux/x64/debug/bundle")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
