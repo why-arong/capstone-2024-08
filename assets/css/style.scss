@@ -1,0 +1,26 @@
+---
+---
+
+@import "{{ site.theme }}";
+
+.btn {
+  color: #f7a7bb;
+  border-color: #f7a7bb;
+}
+
+.page-header {
+  background-color: #000000;
+  color: #f7a7bb;
+  text-align: center;
+  background-image: none;
+  border-radius: 10px;
+}
+
+.main-content h1,
+.main-content h2,
+.main-content h3,
+.main-content h4,
+.main-content h5,
+.main-content h6 {
+  color: #f7a7bb;
+}
