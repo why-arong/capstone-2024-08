@@ -71,7 +71,6 @@ Project is created with:
             <td align='center'>AI</td>
             <td align='center'>AI</td>
           </tr>
-        </table></div>
 
 ---
 
