@@ -95,8 +95,9 @@ Project is created with:
             <td align='center'>AI</td>
             <td align='center'>AI</td>
         </tr>
+        </table></div>
 
 ## Resources
 
-<a href="./resources/cd_midterm-report.docx">중간 보고서</a>
-<a href="./resources/cd_midterm_ppt.pdf">중간 발표</a>
+📖 <a href="./resources/cd_midterm-report.docx"> 중간 보고서</a>
+🕴️ <a href="./resources/cd_midterm_ppt.pdf">중간 발표</a>
