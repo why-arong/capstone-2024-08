@@ -45,32 +45,10 @@ Project is created with:
 
 ## Developers
 
-<div align='center'>
-<table>
-    <thead>
-        <tr>
-            <th colspan="5">커비</th>
-        </tr>
-    </thead>
-    <tbody>
-        <tr>
-            <td align='center'><a href="https://github.com/anjiwon319 "><img src="https://avatars.githubusercontent.com/u/66212424?v=4" width="100" height="100">
-            <td align='center'><a href="https://github.com/Shin-MG "><img src="https://avatars.githubusercontent.com/u/66138381?v=4" width="100" height="100">
-            <td align='center'><a href="https://github.com/YunHaaaa "><img src="https://avatars.githubusercontent.com/u/63325450?v=4" width="100" height="100">
-            <td align='center'><a href="https://github.com/why-arong"><img src="https://avatars.githubusercontent.com/u/68311908?v=4" width="100" height="100">
-          </tr>
-          <tr>
-            <td align='center'>안지원</td>
-            <td align='center'>신민경</td>
-            <td align='center'>윤하은</td>
-            <td align='center'>김필모</td>
-          </tr>
-          <tr>
-            <td align='center'>Leader, Backend</td>
-            <td align='center'>Frontend</td>
-            <td align='center'>AI</td>
-            <td align='center'>AI</td>
-          </tr>
+| [![안지원](https://avatars.githubusercontent.com/u/66212424?v=4)](https://github.com/anjiwon319) | [![신민경](https://avatars.githubusercontent.com/u/66138381?v=4)](https://github.com/Shin-MG) | [![윤하은](https://avatars.githubusercontent.com/u/63325450?v=4)](https://github.com/YunHaaaa) | [![김필모](https://avatars.githubusercontent.com/u/68311908?v=4)](https://github.com/why-arong) |
+| ------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
+| 안지원                                                                                           | 신민경                                                                                        | 윤하은                                                                                         | 김필모                                                                                          |
+| Leader, Backend                                                                                  | Frontend                                                                                      | AI                                                                                             | AI                                                                                              |
 
 ---
 
