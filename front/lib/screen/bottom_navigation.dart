@@ -1,7 +1,7 @@
 import 'package:capstone/constants/color.dart' as colors;
 import 'package:capstone/screen/home/home.dart';
 import 'package:capstone/screen/my_record/record.dart';
-import 'package:capstone/screen/script/script.dart';
+import 'package:capstone/screen/script/script_taps.dart';
 import 'package:flutter/material.dart';
 
 
@@ -17,7 +17,7 @@ class _BottomNavBarState extends State<BottomNavBar> {
   static final List<Widget> _widgetOptions = <Widget>[
     const MyRecord(),
     const Home(),
-    const Script(),
+    const ScriptTabs(),
   ];
 
   void _onItemTapped(int index) {

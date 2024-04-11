@@ -24,4 +24,29 @@ class LoadData {
               .toList());
     }
   }
+
+  Stream<List<ScriptModel>> readUserScripts(String? category) {
+    if (category == '전체') {
+      return firestore
+          .collection('user')
+          .doc('mg')
+          .collection('user_script')
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) => snapshot.docs
+              .map((doc) => ScriptModel.fromDocument(doc: doc))
+              .toList());
+    } else {
+      return firestore
+          .collection('user')
+          .doc('mg')
+          .collection('user_script')
+          .where('category', isEqualTo: category)
+          .orderBy('createdAt', descending: true)
+          .snapshots()
+          .map((snapshot) => snapshot.docs
+              .map((doc) => ScriptModel.fromDocument(doc: doc))
+              .toList());
+    }
+  }
 }
