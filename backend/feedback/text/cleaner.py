@@ -8,9 +8,9 @@ from .korean import tokenize as ko_tokenize
 from phonemizer import phonemize
 import jamotools
 
-# Added to support LJ_speech
 from unidecode import unidecode
-from .en_numbers import normalize_numbers as en_normalize_numbers
+# 영어를 위한 전처리
+# from en_numbers import normalize_numbers as en_normalize_numbers
 
 import g2pk
 from g2pk import G2p
