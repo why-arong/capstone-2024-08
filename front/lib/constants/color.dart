@@ -6,4 +6,5 @@ const Color blockColor = Color(0xFFFFFFFF);
 const Color textColor = Color(0xFF000000);
 const Color buttonColor = Color(0xFFFF62B7);
 const Color exampleScriptColor = Color(0xFFFFE5F4);
+const Color buttonSideColor = Color(0xFFECECEC);
 
