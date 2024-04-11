@@ -32,6 +32,7 @@ class _CategoryButtonsState extends State<CategoryButtons> {
           Container(
             padding: const EdgeInsets.fromLTRB(0, 0, 6, 0),
             child: ChoiceChip(
+                showCheckmark: false,
                 label: Text(
                   widget.category[i],
                   semanticsLabel: widget.category[i],
