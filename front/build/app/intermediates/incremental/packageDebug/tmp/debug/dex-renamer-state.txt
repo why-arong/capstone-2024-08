@@ -1,4 +1,0 @@
-#Mon Apr 01 15:25:28 KST 2024
-base.0=/home/shin/capstone/capstone-2024-08/front/build/app/intermediates/dex/debug/mergeDexDebug/classes.dex
-path.0=classes.dex
-renamed.0=classes.dex
