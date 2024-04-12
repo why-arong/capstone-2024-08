@@ -42,7 +42,7 @@ rule CXX_EXECUTABLE_LINKER__capstone
 # Rule for re-running cmake.
 
 rule RERUN_CMAKE
-  command = /snap/flutter/145/usr/bin/cmake -S/home/shin/capstone/front/capstone/linux -B/home/shin/capstone/front/capstone/build/linux/x64/debug
+  command = /snap/flutter/145/usr/bin/cmake -S/home/shin/capstone/capstone-2024-08/front/linux -B/home/shin/capstone/capstone-2024-08/front/build/linux/x64/debug
   description = Re-running CMake...
   generator = 1
 

@@ -87,7 +87,7 @@
 # .pub-cache/
 # .pub/
 # /build/
-
+*front/build/*
 # # Web related
 # lib/generated_plugin_registrant.dart
 
@@ -186,7 +186,7 @@ gen-external-apklibs
 # See https://www.dartlang.org/guides/libraries/private-files
 
 # Files and directories created by pub
-.dart_tool/
+front/.dart_tool/
 .packages
 # If you're building an application, you may want to check-in your pubspec.lock
 pubspec.lock
