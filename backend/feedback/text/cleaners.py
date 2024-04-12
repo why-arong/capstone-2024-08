@@ -12,7 +12,7 @@ from unidecode import unidecode
 # 영어를 위한 전처리
 # from en_numbers import normalize_numbers as en_normalize_numbers
 
-import g2pk
+# import g2pk
 from g2pk import G2p
 
 from kiwipiepy import Kiwi
@@ -86,26 +86,26 @@ def transliteration_cleaners(text):
 
 def korean_cleaners(text):
     '''Pipeline for Korean text, including number and abbreviation expansion.'''
-    global g2p_dict, phoneme
+    global g2p_dict
 
     text = jamotools.join_jamos(text)
 
     try:
-        phoneme = g2p_dict[text]
-    except KeyError:
-        phoneme = g2p(text, descriptive=True, group_vowels=True)
-        g2p_dict[text] = phoneme
-    finally:
-        text = phoneme
+        phoneme = g2p_dict.get(text)
+        if phoneme is None:
+            phoneme = g2p(text, descriptive=True, group_vowels=True)
+            g2p_dict[text] = phoneme
+    except Exception as e:
+        print("Error during g2p conversion:", e)
+        phoneme = text  # Fallback to original text if g2p conversion fails
 
-    text = jamotools.split_syllables(text, jamo_type="JAMO")
+    text = jamotools.split_syllables(phoneme, jamo_type="JAMO")
     text = text.replace('@', '')
 
-    phonemes = phonemize(text, language='ko', backend='espeak', strip=True, preserve_punctuation=True,
-                         with_stress=True)
+    phonemes = phonemize(text, language='ko', backend='espeak',
+                         strip=True, preserve_punctuation=True, with_stress=True)
     phonemes = collapse_whitespace(phonemes)
-    phonemes = phonemes.replace('(en)', '')
-    phonemes = phonemes.replace('(ko)', '')
-    phonemes = phonemes.replace('-', '')
+    phonemes = phonemes.replace('(en)', '').replace(
+        '(ko)', '').replace('-', '')
 
     return phonemes
