@@ -1,0 +1,8 @@
+librosa==0.8.0
+Unidecode==1.1.1
+jamo
+phonemizer
+jamotools
+unidecode
+g2pk
+kiwipiepy
