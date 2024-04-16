@@ -1,4 +1,9 @@
 List<String> category = ['전체', '정치', '경제', '사회', '생활/문화', 'IT/과학', '세계'];
+
+Map<String, String> warningMessage = {
+  'category': '카테고리는 비워둘 수 없습니다. \n카테고리를 선택해주세요.'
+};
+
 Map<String, String> usingPolicy = {
   'policyName': '이용약관',
   'policyContent':
