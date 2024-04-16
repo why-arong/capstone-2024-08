@@ -12,3 +12,4 @@ openai-whisper
 # server
 fastapi
 uvicorn
+python-multipart
