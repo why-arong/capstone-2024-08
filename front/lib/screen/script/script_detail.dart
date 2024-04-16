@@ -4,7 +4,7 @@ import 'package:capstone/widget/script/script_content_block.dart';
 import 'package:capstone/widget/basic_app_bar.dart';
 import 'package:capstone/widget/fully_rounded_rectangle_button.dart';
 import 'package:capstone/widget/outlined_rounded_rectangle_button.dart';
-import 'package:capstone/widget/select_training.dart';
+import 'package:capstone/screen/script/select_practice.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
@@ -99,7 +99,12 @@ class _ScriptDetailState extends State<ScriptDetail> {
                                 child: outlinedRoundedRectangleButton('기록보기', () {})),
                             Container(
                               width: width * 0.4,
-                              child: fullyRoundedRectangleButton(colors.buttonColor, '연습하기', () {})
+                              child: fullyRoundedRectangleButton(colors.buttonColor, '연습하기', () {
+                                Get.to(() => SelectPractice(
+                                  script: widget.script,
+                                  tapCloseButton: () { Get.back(); },
+                                ));
+                              })
                             ),
                         ])
                     )
