@@ -2,7 +2,7 @@
 .history
 .idea
 .vscode
-
+.dart_tool
 
 # python
 venv/

@@ -11,18 +11,19 @@ ElevatedButton createUserScriptButton() {
           borderRadius: BorderRadius.circular(10),
         ),
       ),
-      onPressed: () {
-        HapticFeedback.lightImpact();
-        //Get.to(() => const CreateUserScript());
-      },
-      child: const Text(
-        '나만의 대본 만들기',
-        semanticsLabel: '나만의 대본 만들기',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          color: colors.blockColor,
-          fontSize: 13,
-          fontWeight: FontWeight.w700,
-        ),
-      ));
+  onPressed: () {
+    HapticFeedback.lightImpact();
+    Get.to(() => const CreateUserScript());
+  },
+  child: const Text(
+    '나만의 대본 만들기',
+    semanticsLabel: '나만의 대본 만들기',
+    textAlign: TextAlign.center,
+    style: TextStyle(
+      color: colors.blockColor,
+      fontSize: 13,
+      fontWeight: FontWeight.w700,
+    ),
+  )
+);
 }
