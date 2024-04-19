@@ -1,9 +1,11 @@
 # IDEs and editors
-.history
-.idea
-.vscode
+.history/
+.idea/
+.vscode/
 
 
 # python
 venv/
-**/__pycache__/
+__pycache__/
+
+
