@@ -117,6 +117,7 @@
 .svn/
 migrate_working_dir/
 .github/
+.dart_tool/
 
 # not used directory
 web/
@@ -186,7 +187,7 @@ gen-external-apklibs
 # See https://www.dartlang.org/guides/libraries/private-files
 
 # Files and directories created by pub
-front/.dart_tool/
+.dart_tool/
 .packages
 # If you're building an application, you may want to check-in your pubspec.lock
 pubspec.lock
