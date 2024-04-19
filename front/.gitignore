@@ -61,6 +61,7 @@
 .svn/
 migrate_working_dir/
 .github/
+.dart_tool/
 
 # not used directory
 web/

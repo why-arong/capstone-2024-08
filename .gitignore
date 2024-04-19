@@ -1,8 +1,9 @@
 # IDEs and editors
-.history/
-.idea/
-.vscode/
 
+.history
+.idea
+.vscode
+.dart_tool
 
 # python
 venv/
