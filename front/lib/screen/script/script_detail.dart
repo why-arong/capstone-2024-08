@@ -67,7 +67,9 @@ class _ScriptDetailState extends State<ScriptDetail> {
                       const SizedBox(height: 15),
                       _buildTitle(widget.script.title),
                       const SizedBox(height: 20),
-                      scriptContentBlock(widget.script.content, width),
+                      Column(
+                        children: widget.script.content.map((sentence) 
+                          => scriptContentBlock(sentence, width)).toList()),
                       const SizedBox(height: 30),
                   ])
                 ),     
