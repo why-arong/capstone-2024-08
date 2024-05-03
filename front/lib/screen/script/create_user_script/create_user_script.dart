@@ -37,6 +37,9 @@ class _CreateUserScriptState extends State<CreateUserScript> {
   }
 
   void createScriptByGpt(String title, String category) async {
+      setState(() {
+        _content.text = 'AI로 대본을 생성하고 있습니다. 잠시만 기다려주세요.';
+      });
       await GptController().createScript(title, category).then((script) {
         setState(() {
           _content.text = script;
