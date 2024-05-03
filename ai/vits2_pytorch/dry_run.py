@@ -19,6 +19,8 @@ net_g = SynthesizerTrn(
     upsample_initial_channel=512,
     upsample_kernel_sizes=[16, 16, 4, 4],
     n_speakers=0,
+    # speaker cond layer input size
+    # self.spk_emb_linear = nn.Linear(self.gin_channels, self.hidden_channels)
     gin_channels=0,
     use_sdp=True, 
     use_transformer_flows=True, # <--- vits2 parameter
