@@ -20,7 +20,6 @@ class ScriptDetail extends StatefulWidget {
 
   final ScriptModel script;
   final String scriptType;
-  final Color backgroundColor = colors.bgrBrightColor;
 
   @override
   State<ScriptDetail> createState() => _ScriptDetailState();
@@ -60,11 +59,10 @@ class _ScriptDetailState extends State<ScriptDetail> {
     var width = MediaQuery.of(context).size.width;
 
     return Scaffold(
-        appBar: basicAppBar(backgroundColor: widget.backgroundColor, title: ''),
+        appBar: basicAppBar(backgroundColor: colors.bgrBrightColor, title: ''),
         body: Stack(
               children: [
                 Container(
-                  color: widget.backgroundColor,
                   padding: const EdgeInsets.fromLTRB(20, 5, 20, 20),
                   child: ListView(
                     children: [

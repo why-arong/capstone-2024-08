@@ -17,8 +17,6 @@ import 'package:get/get.dart';
 class CreateUserScript extends StatefulWidget {
   const CreateUserScript({Key? key}) : super(key: key);
 
-  final Color backgroundColor = colors.bgrBrightColor;
-
   @override
   State<CreateUserScript> createState() => _CreateUserScriptState();
 }
@@ -64,15 +62,12 @@ class _CreateUserScriptState extends State<CreateUserScript> {
       appBar: basicAppBar(title: '나만의 대본 만들기'),
       body: Stack(
         children: [
-          Container(
-            color: widget.backgroundColor,
-                child: Column(
-                  children: [
-                    TitleSection(titleController: _title, formKey: _titleKey),
-                    CategorySection(onCategorySelected: _handleCategorySelected),
-                    ContentSection(contentController: _content, formKey: _contentKey)
-                ])
-          ),
+          Column(
+            children: [
+              TitleSection(titleController: _title, formKey: _titleKey),
+              CategorySection(onCategorySelected: _handleCategorySelected),
+              ContentSection(contentController: _content, formKey: _contentKey)
+          ]),
           bottomButtons(
             MediaQuery.of(context).size.width, 
             outlinedRoundedRectangleButton('AI로 생성하기', () {
