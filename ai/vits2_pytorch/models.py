@@ -470,6 +470,7 @@ class ResidualCouplingTransformersLayer(nn.Module):  # vits2
         self.half_channels = channels // 2
         self.mean_only = mean_only
         # vits2
+        # TODO: add gin_channels
         self.pre_transformer = attentions.Encoder(
             self.half_channels,
             self.half_channels,
