@@ -1,8 +1,10 @@
 from fastapi import FastAPI, File, UploadFile
 from feedback import levenshtein, text
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse
 import tempfile
 from feedback import stt
+from voice_converison import change_voice
+
 
 app = FastAPI()
 
@@ -29,6 +31,14 @@ async def create_upload_file(user_wav: UploadFile = File(...)):
     similarity_percentage = levenshtein.dist(guide_trans, user_trans)
     # similarity_percentage = levenshtein.dist(guide, user)
     return {"similarity_percentage": similarity_percentage}
+
+
+@app.post("/voice_guide/")
+async def provide_voice_guide(prompt: str):
+    # 테스트를 위해 위 파라미터 사용하지 않음
+    change_voice("./_samples/SPK064KBSCU001M001.wav", ["./_samples/SPK014KBSCU004F002.wav"])
+    print("conversion complete!!")
+    return FileResponse("./voice_conversion/result/vc_out.wav", media_type="audio/wav")
 
 
 if __name__ == "__main__":
