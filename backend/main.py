@@ -51,7 +51,7 @@ async def create_upload_file(user_wav: UploadFile = File(...)):
 @app.post("/voice_guide/")
 async def provide_voice_guide(prompt: str):
     # 테스트를 위해 위 파라미터 사용하지 않음
-    change_voice("./_samples/SPK064KBSCU001M001.wav", ["./_samples/SPK014KBSCU004F002.wav"])
+    change_voice("voice_converison/SPK064KBSCU001M001.wav", ["./_samples/SPK014KBSCU004F002.wav"])
     print("conversion complete!!")
     return FileResponse("./voice_conversion/result/vc_out.wav", media_type="audio/wav")
 
