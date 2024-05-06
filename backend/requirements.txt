@@ -8,6 +8,8 @@ unidecode
 g2pk
 kiwipiepy
 openai-whisper
+python-Levenshtein
+setuptools
 
 # server
 fastapi
