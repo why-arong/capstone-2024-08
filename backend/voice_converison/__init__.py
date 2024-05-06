@@ -12,4 +12,4 @@ def change_voice(src: str, ref: List[str]):
     query_seq = knn_vc.get_features(src_wav_path)
     matching_set = knn_vc.get_matching_set(ref_wav_paths)
     out_wav = knn_vc.match(query_seq, matching_set, topk=4)
-    torchaudio.save("./result/vc_out.wav", out_wav[None], 16000)
+    torchaudio.save("/home/ubuntu/forked/capstone-2024-08/backend/voice_converison/vc_out.wav", out_wav[None], 16000)
