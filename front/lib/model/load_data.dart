@@ -1,3 +1,4 @@
+import 'package:capstone/model/record.dart';
 import 'package:capstone/model/script.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -28,9 +29,9 @@ class LoadData {
   Stream<List<ScriptModel>> readUserScripts(String? category) {
     if (category == '전체') {
       return firestore
-          .collection('user')
-          .doc('mg')
           .collection('user_script')
+          .doc('mg')
+          .collection('script')
           .orderBy('createdAt', descending: true)
           .snapshots()
           .map((snapshot) => snapshot.docs
@@ -38,9 +39,9 @@ class LoadData {
               .toList());
     } else {
       return firestore
-          .collection('user')
-          .doc('mg')
           .collection('user_script')
+          .doc('mg')
+          .collection('script')
           .where('category', isEqualTo: category)
           .orderBy('createdAt', descending: true)
           .snapshots()
@@ -48,5 +49,16 @@ class LoadData {
               .map((doc) => ScriptModel.fromDocument(doc: doc))
               .toList());
     }
+  }
+
+  Stream<List<RecordModel>> readUserPracticeRecord(String route) {
+    return firestore
+          .collection('user')
+          .doc('mg')
+          .collection('${route}_practice')
+          .snapshots()
+          .map((snapshot) => snapshot.docs
+              .map((doc) => RecordModel.fromDocument(doc: doc))
+              .toList());
   }
 }

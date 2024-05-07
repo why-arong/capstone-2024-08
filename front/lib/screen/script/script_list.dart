@@ -1,10 +1,9 @@
 import 'package:capstone/constants/color.dart' as colors;
 import 'package:capstone/constants/text.dart' as texts;
 import 'package:capstone/model/load_data.dart';
-import 'package:capstone/model/script.dart';
 import 'package:capstone/widget/category_buttons.dart';
 import 'package:capstone/widget/script/create_user_script_button.dart';
-import 'package:capstone/widget/script/script_list_tile.dart';
+import 'package:capstone/widget/script/read_script.dart';
 import 'package:flutter/material.dart';
 
 class ScriptList extends StatefulWidget {
@@ -29,30 +28,6 @@ class _ScriptListState extends State<ScriptList> {
     });
   }
 
-
-  Widget _readScripts(dynamic streamFunc){
-    return StreamBuilder<List<ScriptModel>>(
-        stream: streamFunc,
-        builder: (context, snapshots) {
-          if (snapshots.hasData) {
-            return ListView.builder(
-                itemCount: snapshots.data!.length,
-                shrinkWrap: true,
-                itemBuilder: (_, index) {
-                  ScriptModel script = snapshots.data![index];
-                  return scriptListTile(context, script);
-                });
-        } else {
-          return const SelectionArea(
-            child: Center(
-              child: Icon(Icons.hourglass_bottom)
-            )
-          );
-        }
-      })
-    ;
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -67,12 +42,12 @@ class _ScriptListState extends State<ScriptList> {
               ),
               widget.index == 0 ?
                 Expanded(
-                  child: _readScripts(loadData.readExampleScripts(selectedCategoryValue))
+                  child: readScripts(loadData.readExampleScripts(selectedCategoryValue))
                 )
                 : Expanded(
                     child: Stack(
                       children:[
-                        _readScripts(loadData.readUserScripts(selectedCategoryValue)),
+                        readScripts(loadData.readUserScripts(selectedCategoryValue)),
                         Positioned(
                           bottom: 2,
                           left: MediaQuery.of(context).size.width * 0.05,

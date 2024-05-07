@@ -1,9 +1,15 @@
 # IDEs and editors
+
 .history
 .idea
 .vscode
-
+.dart_tool
 
 # python
 venv/
-**/__pycache__/
+__pycache__/
+
+# backend
+backend/create_script/.config_secret
+
+
