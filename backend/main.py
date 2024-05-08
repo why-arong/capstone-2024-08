@@ -6,9 +6,8 @@ from feedback import stt
 from create_script import gpt
 from create_script.schemas.gpt_sch import GptRequestSch, GptResponseSch
 from fastapi.middleware.cors import CORSMiddleware
-
 from voice_converison import change_voice
-
+from tts import infer
 
 app = FastAPI()
 # CORS 설정
@@ -54,6 +53,7 @@ async def provide_voice_guide(prompt: str):
     # test
 
     # part-1: tts
+    result_audio = infer(prompt)
 
 
     # part-2: voice conversion
