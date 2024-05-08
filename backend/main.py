@@ -11,13 +11,13 @@ from voice_converison import change_voice
 
 
 app = FastAPI()
-
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_methods=["GET", "POST", "OPTIONS"],
 )
+
 
 @app.post("/script", response_model= GptResponseSch)
 async def create_script(req: GptRequestSch):
