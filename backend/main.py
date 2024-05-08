@@ -50,7 +50,12 @@ async def create_upload_file(user_wav: UploadFile = File(...)):
 
 @app.post("/voice_guide/")
 async def provide_voice_guide(prompt: str):
-    # 테스트를 위해 위 파라미터 사용하지 않음
+    # test
+
+    # part-1: tts
+
+
+    # part-2: voice conversion
     change_voice("voice_converison/SPK064KBSCU001M001.wav", ["./_samples/SPK014KBSCU004F002.wav"])
     print("conversion complete!!")
     return FileResponse("/home/ubuntu/forked/capstone-2024-08/backend/voice_converison/vc_out.wav", media_type="audio/wav")
