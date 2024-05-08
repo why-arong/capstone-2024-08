@@ -1,5 +1,5 @@
 from fastapi import FastAPI, File, UploadFile
-from feedback import levenshtein, text
+from feedback import levenshtein
 from fastapi.responses import JSONResponse, FileResponse
 import tempfile
 from feedback import stt
