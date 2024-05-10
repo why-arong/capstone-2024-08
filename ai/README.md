@@ -4,6 +4,7 @@ conda create -n loro python=3.10
 conda activate loro
 
 cd vits2_pytorch
+sudo apt-get install espeak
 sudo pip3 install --ignore-installed -r requirements.txt
 ```
 
