@@ -14,3 +14,10 @@ pip3 install jupyter
 pip3 install ipykernel
 python3 -m ipykernel install --user --name loro --display-name loro
 ```
+
+
+## dataset
+```bash
+ln -s /path/to/dataset/VL DUMMY3
+
+```
