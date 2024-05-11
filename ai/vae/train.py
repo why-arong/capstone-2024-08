@@ -48,10 +48,6 @@ segment_length = config['audio'].getint('segment_length')
 # Dataset
 dataset = Path(config['dataset'].get('data'))
 
-datapath = Path(config['dataset'].get('datapath'))
-if not datapath.exists():
-  raise FileNotFoundError(datapath.resolve())
-
 run_number = config['dataset'].getint('run_number')
 
 with open("filelists/train.txt", "r", encoding="utf-8") as train_file:
@@ -90,9 +86,7 @@ config['VAE']['device_name'] = device_name
 run_id = run_number
 while True:
     try:
-        my_runs = datapath / desc
-        run_name = 'run-{:03d}'.format(run_id)
-        workdir = my_runs / run_name 
+        workdir = 'run/{:03d}'.format(run_id)
         os.makedirs(workdir)
 
         break
