@@ -46,9 +46,6 @@ dataset = Path(config['dataset'].get('data'))
 
 run_number = config['dataset'].getint('run_number')
 
-with open("filelists/train.txt", "r", encoding="utf-8") as train_file:
-    train_files = train_file.read().splitlines()
-
 generate_test = config['dataset'].get('generate_test')    
 
 
@@ -103,26 +100,35 @@ print("Workspace: {}".format(workdir))
 
 # Create the dataset
 print('creating the dataset...')
-training_array = []
-new_loop = True
 
-for f in train_files: 
-  new_array, _ = librosa.load(f, sr=sampling_rate)
+def create_dataset(file_path, segment_length, sampling_rate, hop_length, batch_size):
+    with open(file_path, "r", encoding="utf-8") as file:
+        files = file.read().splitlines()
+    
+    audio_array = []
+    new_loop = True
 
-  if new_loop:
-      training_array = new_array
-      new_loop = False
-  else:
-      training_array = np.concatenate((training_array, new_array), axis=0)
+    for f in files: 
+        new_array, _ = librosa.load(f, sr=sampling_rate)
 
-total_frames = len(training_array) // segment_length
-print('Total number of audio frames: {}'.format(total_frames))
-config['dataset']['total_frames'] = str(total_frames)
+        if new_loop:
+            audio_array = new_array
+            new_loop = False
+        else:
+            audio_array = np.concatenate((audio_array, new_array), axis=0)
 
+    total_frames = len(audio_array) // segment_length
+    print('Total number of audio frames: {}'.format(total_frames))
 
-# Create the dataset
-training_dataset = AudioDataset(training_array, segment_length = segment_length, sampling_rate = sampling_rate, hop_size = hop_length, transform=ToTensor())
-training_dataloader = DataLoader(training_dataset, batch_size = batch_size, shuffle=True)
+    dataset = AudioDataset(audio_array, segment_length=segment_length, sampling_rate=sampling_rate, hop_size=hop_length, transform=ToTensor())
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    
+    return dataloader, len(dataset)
+
+# Usage example:
+train_dataloader, train_dataset_len = create_dataset("filelists/train.txt", segment_length, sampling_rate, hop_length, batch_size)
+validation_dataloader, val_dataset_len = create_dataset("filelists/val.txt", segment_length, sampling_rate, hop_length, batch_size)
+
 
 print("saving initial configs...")
 config_path = workdir / 'config.ini'
@@ -167,7 +173,7 @@ for epoch in range(epochs):
   model.train()
   train_loss = 0
   
-  for i, data in enumerate(training_dataloader):
+  for i, data in enumerate(train_dataloader):
     
     # data, = data
     data = data.to(device)
@@ -179,7 +185,7 @@ for epoch in range(epochs):
     optimizer.step()
   
   print('====> Epoch: {} - Total loss: {} - Average loss: {:.9f}'.format(
-          epoch, train_loss, train_loss / len(training_dataset)))
+          epoch, train_loss, train_loss / train_dataset_len))
   
   if epoch % checkpoint_interval == 0 and epoch != 0: 
     print('Checkpoint - Epoch {}'.format(epoch))
@@ -189,31 +195,22 @@ for epoch in range(epochs):
       'optimizer': optimizer.state_dict()
     }
     
-    if generate_test:
-      
-      init_test = True
-      
-      for iterno, test_sample in enumerate(test_dataloader):
-        with torch.no_grad():
-          test_sample = test_sample.to(device)
-          test_pred = model(test_sample)[0]
-        
-        if init_test:
-          test_predictions = test_pred
-          init_test = False
-        
-        else:
-          test_predictions = torch.cat(test_predictions, test_pred, 0)
-        
-      audio_out = audio_log_dir.joinpath('test_reconst_{:05d}.wav'.format(epoch))
-      test_predictions_np = test_predictions.view(-1).cpu().numpy()
-      sf.write( audio_out, test_predictions_np, sampling_rate)
-      print('Audio examples generated: {}'.format(audio_out))
+    # Validation
+    model.eval()
+    validation_loss = 0
+    with torch.no_grad():
+      for data in validation_dataloader:
+        data = data.to(device)
+        recon_batch, mu, logvar = model(data)
+        validation_loss += loss_function(recon_batch, data, mu, logvar, kl_beta, segment_length).item()
+
+    print('Validation loss: {:.9f}'.format(validation_loss / val_dataset_len))
     
+    # Save checkpoint
     torch.save(state, checkpoint_dir.joinpath('ckpt_{:05d}'.format(epoch)))
   
+    # Save best model
     if (train_loss < train_loss_prev) and (epoch > save_best_model_after):
-      
       save_path = workdir.joinpath('model').joinpath('best_model.pt')
       torch.save(model, save_path)
       print('Epoch {:05d}: Saved {}'.format(epoch, save_path))
@@ -246,7 +243,7 @@ if generate_test:
       init_test = False
     
     else:
-      test_predictions = torch.cat(test_predictions, test_pred, 0)
+      test_predictions = torch.cat((test_predictions, test_pred), 0)
     
   audio_out = audio_log_dir.joinpath('test_reconst_{:05d}.wav'.format(epochs))
   test_predictions_np = test_predictions.view(-1).cpu().numpy()
