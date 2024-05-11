@@ -40,5 +40,10 @@ train, val, test 파일 리스트 생성
 ```bash
 ln -s /path/to/dataset/VL DUMMY3
 python3 preprocess_filelist.py 
+```
 
+## Train
+
+```bash
+python3 train.py
 ```
