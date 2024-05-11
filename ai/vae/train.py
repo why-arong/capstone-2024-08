@@ -8,9 +8,9 @@ from torch import nn, optim
 from torch.nn import functional as F
 from torchvision import datasets, transforms
 
-from rawvae.model import VAE, loss_function
-from rawvae.tests import init_test_audio
-from rawvae.dataset import AudioDataset, ToTensor
+from model import VAE, loss_function
+from tests import init_test_audio
+from dataset import AudioDataset, ToTensor
 
 import random
 import numpy as np
