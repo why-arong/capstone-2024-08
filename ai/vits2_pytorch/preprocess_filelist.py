@@ -1,27 +1,51 @@
 import os
 import json
+import random
 
-# 입력 및 출력 경로 설정
 INPUT_ROOT_DIR = "DUMMY3" 
-OUTPUT_FILE = "output.txt"
+OUTPUT_TRAIN_FILE = "filelists/loro_audio_sid_text_train_filelist.txt"
+OUTPUT_VAL_FILE = "filelists/loro_audio_sid_text_val_filelist.txt"
+OUTPUT_TEST_FILE = "filelists/loro_audio_sid_text_test_filelist.txt"
 
-# 출력 파일 열기
-with open(OUTPUT_FILE, "w", encoding="utf-8") as f_out:
-    # 입력 디렉토리 탐색
-    for root, dirs, files in os.walk(INPUT_ROOT_DIR):
-        for file in files:
-            # .json 파일인 경우에만 처리
-            if file.endswith(".json"):
-                json_path = os.path.join(root, file)
-                with open(json_path, "r", encoding="utf-8") as f_json:
-                    data = json.load(f_json)
-                    # script 키가 존재하는 경우에만 처리
-                    if "script" in data:
-                        script = data["script"]
-                        if "text" in script and "id" in script:
-                            script_text = script["text"]
-                            script_id = script["id"]
-                            # WAV 파일 경로 생성
-                            wav_path = os.path.join(root, file.replace(".json", ".wav"))
-                            # 텍스트와 ID를 "|"로 구분하여 출력 파일에 쓰기
-                            f_out.write(f"{wav_path}|{script_id}|{script_text}\n")
+file_list = []
+
+speaker_files = {}
+for root, dirs, files in os.walk(INPUT_ROOT_DIR):
+    for file in files:
+        if file.endswith(".json"):
+            json_path = os.path.join(root, file)
+            with open(json_path, "r", encoding="utf-8") as f_json:
+                data = json.load(f_json)
+                if "speaker" in data:
+                    speaker_id = data["speaker"]["id"]
+                    if speaker_id not in speaker_files:
+                        speaker_files[speaker_id] = []
+                    speaker_files[speaker_id].append((json_path, data["script"]["text"]))
+
+for speaker_id, files in speaker_files.items():
+    random.shuffle(files)
+    file_list.extend(files)
+
+
+random.shuffle(file_list)
+num_files = len(file_list)
+num_train = int(num_files * 0.8)
+num_val = int(num_files * 0.1)
+num_test = num_files - num_train - num_val
+
+train_files = file_list[:num_train]
+val_files = file_list[num_train:num_train + num_val]
+test_files = file_list[num_train + num_val:]
+
+def write_file_list(file_list, output_file):
+    with open(output_file, "w", encoding="utf-8") as f_out:
+        for file_info in file_list:
+            json_path, script_text = file_info
+            speaker_id = os.path.basename(os.path.dirname(json_path))[3:6]
+            wav_path = json_path.replace(".json", ".wav")
+            f_out.write(f"{wav_path}|{speaker_id}|{script_text}\n")
+
+
+write_file_list(train_files, OUTPUT_TRAIN_FILE)
+write_file_list(val_files, OUTPUT_VAL_FILE)
+write_file_list(test_files, OUTPUT_TEST_FILE)
