@@ -16,7 +16,7 @@ def init_test_audio(workdir, sampling_rate, segment_length):
   audio_log_dir = workdir / 'audio_logs'
   os.makedirs(audio_log_dir, exist_ok=True)
 
-  with open("filelists/train.txt", "r", encoding="utf-8") as test_file:
+  with open("filelists/test.txt", "r", encoding="utf-8") as test_file:
       test_files = test_file.read().splitlines()
 
   init = True
