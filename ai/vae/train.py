@@ -31,6 +31,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument('--config', type=str, default ='./default.ini' , help='path to the config file')
 args = parser.parse_args()
 
+
 # Get configs
 config_path = args.config
 config = configparser.ConfigParser(allow_no_value=True)
@@ -40,10 +41,12 @@ except FileNotFoundError:
   print('Config File Not Found at {}'.format(config_path))
   sys.exit()
 
+
 # Import audio configs 
 sampling_rate = config['audio'].getint('sampling_rate')
 hop_length = config['audio'].getint('hop_length')
 segment_length = config['audio'].getint('segment_length')
+
 
 # Dataset
 dataset = Path(config['dataset'].get('data'))
@@ -55,6 +58,7 @@ with open("filelists/train.txt", "r", encoding="utf-8") as train_file:
 
 generate_test = config['dataset'].get('generate_test')    
 
+
 # Training configs
 epochs = config['training'].getint('epochs')
 learning_rate = config['training'].getfloat('learning_rate')
@@ -62,11 +66,13 @@ batch_size = config['training'].getint('batch_size')
 checkpoint_interval = config['training'].getint('checkpoint_interval')
 save_best_model_after = config['training'].getint('save_best_model_after')
 
+
 # Model configs
 latent_dim = config['VAE'].getint('latent_dim')
 n_units = config['VAE'].getint('n_units')
 kl_beta = config['VAE'].getfloat('kl_beta')
 device = config['VAE'].get('device')
+
 
 # etc
 example_length = config['extra'].getint('example_length')
@@ -81,6 +87,7 @@ device = torch.device(device)
 device_name = torch.cuda.get_device_name()
 print('Device: {}'.format(device_name))
 config['VAE']['device_name'] = device_name
+
 
 # Create workspace
 run_id = run_number
@@ -99,6 +106,7 @@ while True:
 config['dataset']['workspace'] = str(workdir.resolve())
 
 print("Workspace: {}".format(workdir))
+
 
 # Create the dataset
 print('creating the dataset...')
@@ -119,6 +127,7 @@ total_frames = len(training_array) // segment_length
 print('Total number of audio frames: {}'.format(total_frames))
 config['dataset']['total_frames'] = str(total_frames)
 
+
 # Create the dataset
 training_dataset = AudioDataset(training_array, segment_length = segment_length, sampling_rate = sampling_rate, hop_size = hop_length, transform=ToTensor())
 training_dataloader = DataLoader(training_dataset, batch_size = batch_size, shuffle=True)
@@ -127,6 +136,7 @@ print("saving initial configs...")
 config_path = workdir / 'config.ini'
 with open(config_path, 'w') as configfile:
   config.write(configfile)
+
 
 # Train
 model_dir = workdir / "model"
@@ -141,10 +151,15 @@ if generate_test:
   test_dataset, audio_log_dir = init_test_audio(workdir, sampling_rate, segment_length)
   test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle=False)
 
+
 # Neural Network
+state = torch.load(Path(r'model/ckpt_00500'), map_location=torch.device(device))
 
 model = VAE(segment_length, n_units, latent_dim).to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+model.load_state_dict(state['state_dict'])
+
 
 # Some dummy variables to keep track of loss situation
 
@@ -248,6 +263,7 @@ if generate_test:
 
   sf.write( audio_out, test_predictions_np, sampling_rate)
   print('Last Audio examples generated: {}'.format(audio_out))
+
 
 # Save the last model as a checkpoint dict
 torch.save(state, checkpoint_dir.joinpath('ckpt_{:05d}'.format(epochs)))
