@@ -8,5 +8,5 @@ def truncate_file(file_path, num_lines):
         file.writelines(truncated_lines)
 
 truncate_file('train.txt', 1000)
-truncate_file('test.txt', 200)
+truncate_file('test.txt', 20)
 truncate_file('val.txt', 200)
