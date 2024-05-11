@@ -46,16 +46,24 @@ hop_length = config['audio'].getint('hop_length')
 segment_length = config['audio'].getint('segment_length')
 
 # Dataset
-dataset = Path(config['dataset'].get('datapath'))
-if not dataset.exists():
-  raise FileNotFoundError(dataset.resolve())
+dataset = Path(config['dataset'].get('data'))
+
+datapath = Path(config['dataset'].get('datapath'))
+if not datapath.exists():
+  raise FileNotFoundError(datapath.resolve())
 
 run_number = config['dataset'].getint('run_number')
 
-my_audio = dataset / 'audio'
+my_audio = []
+
+for root, dirs, files in os.walk(datapath):
+    for file in files:
+        if file.endswith('.wav'):
+            my_audio.append(os.path.join(root, file))
+print('Load audio files num : ', len(my_audio))
 
 test_audio = config['dataset'].get('test_dataset')
-dataset_test_audio = dataset / test_audio
+dataset_test_audio = datapath / test_audio
 
 if not dataset_test_audio.exists():
   raise FileNotFoundError(dataset_test_audio.resolve())
@@ -93,7 +101,7 @@ config['VAE']['device_name'] = device_name
 run_id = run_number
 while True:
     try:
-        my_runs = dataset / desc
+        my_runs = datapath / desc
         run_name = 'run-{:03d}'.format(run_id)
         workdir = my_runs / run_name 
         os.makedirs(workdir)
@@ -114,7 +122,7 @@ print('creating the dataset...')
 training_array = []
 new_loop = True
 
-for f in my_audio.glob('*.wav'): 
+for f in my_audio: 
   print('adding-> %s' % f.stem)
   new_array, _ = librosa.load(f, sr=sampling_rate)
 
