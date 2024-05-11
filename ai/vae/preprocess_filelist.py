@@ -44,8 +44,7 @@ def write_file_list(file_list, output_file):
         for file_info in file_list:
             json_path, script_text = file_info
             wav_path = json_path.replace(".json", ".wav")
-            f_out.write(f"{wav_path}\n")
-
+            f_out.write(f"../dataset/VS{wav_path[13:]}\n")
 
 write_file_list(train_files, OUTPUT_TRAIN_FILE)
 write_file_list(val_files, OUTPUT_VAL_FILE)
