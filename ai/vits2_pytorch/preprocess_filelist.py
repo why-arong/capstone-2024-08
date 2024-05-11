@@ -2,6 +2,8 @@ import os
 import json
 import random
 
+random.seed(42)
+
 INPUT_ROOT_DIR = "DUMMY3" 
 OUTPUT_TRAIN_FILE = "filelists/loro_audio_sid_text_train_filelist.txt"
 OUTPUT_VAL_FILE = "filelists/loro_audio_sid_text_val_filelist.txt"
