@@ -17,7 +17,23 @@ python3 -m ipykernel install --user --name loro --display-name loro
 
 
 ## dataset
+뉴스 대본 및 앵커 음성 데이터셋 다운로드
+- https://www.aihub.or.kr/aihubdata/data/view.do?currMenu=&topMenu=&aihubDataSe=data&dataSetSn=71557
+
+└── ai
+    └── dataset
+        ├── VL
+        │   └── SPK003
+        │       └── SPK003YTNSO162
+        │           └── SPK003YTNSO162F001.json
+        └── VS
+            └── SPK003
+                └── SPK003YTNSO162
+                    └── SPK003YTNSO162F001.wav
+    
+
 ```bash
 ln -s /path/to/dataset/VL DUMMY3
+python3 preprocess_filelist.py 
 
 ```
