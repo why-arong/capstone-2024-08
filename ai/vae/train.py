@@ -93,7 +93,8 @@ config['VAE']['device_name'] = device_name
 run_id = run_number
 while True:
     try:
-        workdir = 'run/{:03d}'.format(run_id)
+        run = Path('run')
+        workdir = run / '{:03d}'.format(run_id)
         os.makedirs(workdir)
 
         break
@@ -114,7 +115,6 @@ training_array = []
 new_loop = True
 
 for f in train_files: 
-  print('adding-> %s' % f.stem)
   new_array, _ = librosa.load(f, sr=sampling_rate)
 
   if new_loop:
