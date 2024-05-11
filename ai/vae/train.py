@@ -54,19 +54,8 @@ if not datapath.exists():
 
 run_number = config['dataset'].getint('run_number')
 
-my_audio = []
-
-for root, dirs, files in os.walk(datapath):
-    for file in files:
-        if file.endswith('.wav'):
-            my_audio.append(os.path.join(root, file))
-print('Load audio files num : ', len(my_audio))
-
-test_audio = config['dataset'].get('test_dataset')
-dataset_test_audio = datapath / test_audio
-
-if not dataset_test_audio.exists():
-  raise FileNotFoundError(dataset_test_audio.resolve())
+with open("filelists/train.txt", "r", encoding="utf-8") as train_file:
+    train_files = train_file.read().splitlines()
 
 generate_test = config['dataset'].get('generate_test')    
 
@@ -122,7 +111,7 @@ print('creating the dataset...')
 training_array = []
 new_loop = True
 
-for f in my_audio: 
+for f in train_files: 
   print('adding-> %s' % f.stem)
   new_array, _ = librosa.load(f, sr=sampling_rate)
 
@@ -155,7 +144,7 @@ os.makedirs(log_dir, exist_ok=True)
 
 if generate_test:
 
-  test_dataset, audio_log_dir = init_test_audio(workdir, test_audio, dataset_test_audio, sampling_rate, segment_length)
+  test_dataset, audio_log_dir = init_test_audio(workdir, sampling_rate, segment_length)
   test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle=False)
 
 # Neural Network

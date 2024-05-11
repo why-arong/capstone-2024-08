@@ -9,19 +9,15 @@ import librosa
 from pathlib import Path
 import soundfile as sf
 
-def init_test_audio(workdir, test_audio, my_test_audio, sampling_rate, segment_length):
+def init_test_audio(workdir, sampling_rate, segment_length):
   # Create a set samples to test the network as it trains
 
   # Create a folder called reconstructions
   audio_log_dir = workdir / 'audio_logs'
   os.makedirs(audio_log_dir, exist_ok=True)
 
-  # List the test audio files from the dataset
-  test_files = [f for f in my_test_audio.glob('*.wav')]
-
-
-  with open( audio_log_dir.joinpath(test_audio+'.txt'), 'w') as test_audio_txt:
-    test_audio_txt.writelines( "{}\n".format(test_file) for test_file in test_files)
+  with open("filelists/train.txt", "r", encoding="utf-8") as test_file:
+      test_files = test_file.read().splitlines()
 
   init = True
   for test in test_files:
