@@ -2,17 +2,14 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 import torch
-from torch.utils.data import Dataset, TensorDataset, DataLoader
+from torch.utils.data import DataLoader
 
-from torch import nn, optim
-from torch.nn import functional as F
-from torchvision import datasets, transforms
+from torch import optim
 
 from model import VAE, loss_function
 from tests import init_test_audio
 from dataset import AudioDataset, ToTensor
 
-import random
 import numpy as np
 
 import os, sys, argparse, time
@@ -21,10 +18,6 @@ from pathlib import Path
 import librosa
 import soundfile as sf
 import configparser
-import random
-import json
-import matplotlib.pyplot as plt
-import pdb
 
 # Parse arguments
 parser = argparse.ArgumentParser()
@@ -213,7 +206,7 @@ for epoch in range(epochs):
         else:
           test_predictions = torch.cat(test_predictions, test_pred, 0)
         
-      audio_out = audio_log_dir.joinpath('test_reconst_{:05d}.wav'.format( epoch))
+      audio_out = audio_log_dir.joinpath('test_reconst_{:05d}.wav'.format(epoch))
       test_predictions_np = test_predictions.view(-1).cpu().numpy()
       sf.write( audio_out, test_predictions_np, sampling_rate)
       print('Audio examples generated: {}'.format(audio_out))
