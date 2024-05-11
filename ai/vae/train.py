@@ -72,7 +72,6 @@ example_length = config['extra'].getint('example_length')
 normalize_examples = config['extra'].getboolean('normalize_examples')
 plot_model = config['extra'].getboolean('plot_model')
 
-desc = config['extra'].get('description')
 start_time = time.time()
 config['extra']['start'] = time.asctime( time.localtime(start_time) )
 
