@@ -60,6 +60,7 @@ save_best_model_after = config['training'].getint('save_best_model_after')
 # Model configs
 latent_dim = config['VAE'].getint('latent_dim')
 n_units = config['VAE'].getint('n_units')
+n_hidden_units = config['VAE'].getint('n_hidden_units')
 kl_beta = config['VAE'].getfloat('kl_beta')
 device = config['VAE'].get('device')
 
@@ -153,7 +154,7 @@ if generate_test:
 # Neural Network
 state = torch.load(Path(r'model/ckpt_00500'), map_location=torch.device(device))
 
-model = VAE(segment_length, n_units, latent_dim).to(device)
+model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
 model.load_state_dict(state['state_dict'])

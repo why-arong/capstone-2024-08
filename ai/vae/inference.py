@@ -30,8 +30,8 @@ sr = sampling_rate
 hop_length = 128
 
 segment_length = 1024
-n_units = 2048
-latent_dim = 256
+n_units = 256
+latent_dim = 8
 
 batch_size = 256
 
