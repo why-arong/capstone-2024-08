@@ -1,72 +1,61 @@
 import torch
 from torch.utils.data import DataLoader
 
-import torchaudio
-Resample = torchaudio.transforms.Resample(44100, 48000, resampling_method='kaiser_window')
-
-if torch.cuda.is_available():
-    device = 'cuda:0'
-    my_cuda = 1
-else:
-    device = 'cpu'
-    my_cuda = 0
-
-Resample = Resample.to(device)
-
-from pathlib import Path
-
 import librosa
 import librosa.display
-
 import IPython.display as display
-
-from model import VAE
 from dataset import TestDataset, ToTensor
 
-segment_length = 1024
-n_units = 256
-n_hidden_units = 64
-latent_dim = 8
+import configparser
+import  sys, argparse
 
-batch_size = 256
+from model import VAE
+from utils import generate_latent_data
 
 
-state = torch.load(Path(r'ai/vae/model/ckpt'), map_location=torch.device(device))
 
-if my_cuda:
+if __name__ == "__main__":
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', type=str, default ='./default.ini' , help='path to the config file')
+    args = parser.parse_args()
+
+    config_path = args.config
+    config = configparser.ConfigParser(allow_no_value=True)
+    try: 
+        config.read(config_path)
+    except FileNotFoundError:
+        print('Config File Not Found at {}'.format(config_path))
+        sys.exit()
+
+    sampling_rate = config['audio'].getint('sampling_rate')
+    hop_length = config['audio'].getint('hop_length')
+    segment_length = config['audio'].getint('segment_length')
+
+    latent_dim = config['VAE'].getint('latent_dim')
+    n_units = config['VAE'].getint('n_units')
+    n_hidden_units = config['VAE'].getint('n_hidden_units')
+    batch_size = config['training'].getint('batch_size')
+
+
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    model_checkpoint_path = 'model/'
+    model_name = 'best_model.pt'
+
     model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
-else:
-    model = VAE(segment_length, n_units, n_hidden_units, latent_dim)
-
-model.load_state_dict(state['state_dict'])
-model.eval()
 
 
-test_audio_path = ""
-test_audio, fs = librosa.load(test_audio_path, sr=None)
+    model = torch.load(model_checkpoint_path+model_name, map_location=torch.device(device))
+    model.to(device) 
+    model.eval()
 
-display.Audio(test_audio, rate=fs)
+    test_audio_path = ""
+    test_audio, fs = librosa.load(test_audio_path, sr=None)
+
+    display.Audio(test_audio, rate=fs)
 
 
-test_dataset = TestDataset(test_audio, segment_length = segment_length, sampling_rate = sampling_rate, transform=ToTensor())
-test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle=False)
+    test_dataset = TestDataset(test_audio, segment_length = segment_length, sampling_rate = sampling_rate, transform=ToTensor())
+    test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle=False)
 
-
-def raw_to_z_dist(test_dataloader, raw_model, device):
-    init_test = True
-    for iterno, test_sample in enumerate(test_dataloader):
-        with torch.no_grad():
-            test_sample = test_sample.to(device)
-            test_mu, test_logvar = raw_model.encode(test_sample)
-
-        if init_test:
-            test_z_mu = test_mu
-            test_z_logvar = test_logvar
-            init_test = False
-
-        else:
-            test_z_mu = torch.cat((test_z_mu, test_mu ),0)
-            test_z_logvar = torch.cat((test_z_logvar, test_logvar ),0)
-    return test_z_mu, test_z_logvar
-
-test1_z_mu, test1_z_logvar = raw_to_z_dist(test_dataloader, model, device)
+    test1_z_mu, test1_z_logvar = generate_latent_data(model, test_dataloader, device)
