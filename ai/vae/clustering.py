@@ -56,11 +56,12 @@ if __name__ == "__main__":
 
     num_clusters = 10
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-    model_checkpoint_path = 'run/002/model/best_model.pt'
+    model_checkpoint_path = 'run/002/model/'
+    model_name = 'best_model.pt'
 
     model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
 
-    model = torch.load(model_checkpoint_path, map_location=torch.device(device))
+    model = torch.load(model_checkpoint_path+model_name, map_location=torch.device(device))
     model.to(device) 
     model.eval()
 
