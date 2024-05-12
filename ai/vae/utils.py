@@ -1,12 +1,10 @@
 import os
-import torch
-from torch.utils.data import Dataset, TensorDataset, DataLoader
+from torch.utils.data import DataLoader
 
-from dataset import TestDataset, ToTensor
+from dataset import AudioDataset, TestDataset, ToTensor
 
 import numpy as np
 import librosa
-from pathlib import Path
 import soundfile as sf
 
 def init_test_audio(workdir, sampling_rate, segment_length):
@@ -35,3 +33,29 @@ def init_test_audio(workdir, sampling_rate, segment_length):
   
   sf.write(audio_log_dir.joinpath('test_original.wav'), test_dataset_audio, sampling_rate)
   return test_dataset, audio_log_dir
+
+
+
+def create_dataset(file_path, segment_length, sampling_rate, hop_length, batch_size):
+    with open(file_path, "r", encoding="utf-8") as file:
+        files = file.read().splitlines()
+    
+    audio_array = []
+    new_loop = True
+
+    for f in files: 
+        new_array, _ = librosa.load(f, sr=sampling_rate)
+
+        if new_loop:
+            audio_array = new_array
+            new_loop = False
+        else:
+            audio_array = np.concatenate((audio_array, new_array), axis=0)
+
+    total_frames = len(audio_array) // segment_length
+    print('Total number of audio frames: {}'.format(total_frames))
+
+    dataset = AudioDataset(audio_array, segment_length=segment_length, sampling_rate=sampling_rate, hop_size=hop_length, transform=ToTensor())
+    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
+    
+    return dataloader, len(dataset)

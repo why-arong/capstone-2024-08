@@ -7,15 +7,11 @@ from torch.utils.data import DataLoader
 from torch import optim
 
 from model import VAE, loss_function
-from ai.vae.utils import init_test_audio
-from dataset import AudioDataset, ToTensor
-
-import numpy as np
+from ai.vae.utils import init_test_audio, create_dataset
 
 import os, sys, argparse, time
 from pathlib import Path
 
-import librosa
 import soundfile as sf
 import configparser
 
@@ -43,9 +39,7 @@ segment_length = config['audio'].getint('segment_length')
 
 # Dataset
 dataset = Path(config['dataset'].get('data'))
-
 run_number = config['dataset'].getint('run_number')
-
 generate_test = config['dataset'].get('generate_test')    
 
 
@@ -101,30 +95,6 @@ print("Workspace: {}".format(workdir))
 
 # Create the dataset
 print('creating the dataset...')
-
-def create_dataset(file_path, segment_length, sampling_rate, hop_length, batch_size):
-    with open(file_path, "r", encoding="utf-8") as file:
-        files = file.read().splitlines()
-    
-    audio_array = []
-    new_loop = True
-
-    for f in files: 
-        new_array, _ = librosa.load(f, sr=sampling_rate)
-
-        if new_loop:
-            audio_array = new_array
-            new_loop = False
-        else:
-            audio_array = np.concatenate((audio_array, new_array), axis=0)
-
-    total_frames = len(audio_array) // segment_length
-    print('Total number of audio frames: {}'.format(total_frames))
-
-    dataset = AudioDataset(audio_array, segment_length=segment_length, sampling_rate=sampling_rate, hop_size=hop_length, transform=ToTensor())
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    
-    return dataloader, len(dataset)
 
 # Usage example:
 train_dataloader, train_dataset_len = create_dataset("filelists/train.txt", segment_length, sampling_rate, hop_length, batch_size)
