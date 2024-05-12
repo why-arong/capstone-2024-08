@@ -4,6 +4,8 @@ from sklearn.cluster import KMeans
 from model import VAE
 from utils import create_dataset
 import numpy as np
+import  sys, argparse
+import configparser
 
 
 # Function to generate latent space data using the VAE model
@@ -13,19 +15,13 @@ def generate_latent_data(model, dataloader):
 
     with torch.no_grad():
         for data in dataloader:
-            recon_batch, mu, logvar = model.forward(data)
+            data = data.to(device)
+            _, mu, _ = model.forward(data)
             latent_data.append(mu)
 
     latent_data = torch.cat(latent_data, dim=0)
     return latent_data.numpy()
 
-# Function to load VAE model from checkpoint
-def load_model_from_checkpoint(checkpoint_path, device):
-    state = torch.load(checkpoint_path, map_location=torch.device(device))
-    model = VAE(state['segment_length'], state['n_units'], state['n_hidden_units'], state['latent_dim']).to(device)
-    model.load_state_dict(state['state_dict'])
-    model.eval()
-    return model
 
 # Function to perform K-means clustering
 def kmeans_clustering(data, num_clusters):
@@ -35,26 +31,49 @@ def kmeans_clustering(data, num_clusters):
     cluster_labels = kmeans.labels_
     return cluster_centers, cluster_labels
 
+
 if __name__ == "__main__":
-    segment_length = 1024
-    n_units = 256
-    n_hidden_units = 64
-    latent_dim = 8
-    batch_size = 256
-    sampling_rate = 44100
-    hop_length = 128
+
+    # Parse arguments
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--config', type=str, default ='./default.ini' , help='path to the config file')
+    args = parser.parse_args()
+
+    # Get configs
+    config_path = args.config
+    config = configparser.ConfigParser(allow_no_value=True)
+    try: 
+        config.read(config_path)
+    except FileNotFoundError:
+        print('Config File Not Found at {}'.format(config_path))
+        sys.exit()
+    print(config.values())
+    sampling_rate = config['audio'].getint('sampling_rate')
+    hop_length = config['audio'].getint('hop_length')
+    segment_length = config['audio'].getint('segment_length')
+
+    latent_dim = config['VAE'].getint('latent_dim')
+    n_units = config['VAE'].getint('n_units')
+    n_hidden_units = config['VAE'].getint('n_hidden_units')
+    batch_size = config['training'].getint('batch_size')
+
+
     num_clusters = 10
-
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
+    model_checkpoint_path = 'run/002/model/best_model.pt'
 
-    model_checkpoint_path = Path('ai/vae/model/ckpt')
-    model = load_model_from_checkpoint(model_checkpoint_path, device)
+    model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
+
+    model = torch.load(model_checkpoint_path, map_location=torch.device(device))
+    model.to(device) 
+    model.eval()
 
     test_dataloader, test_dataset_len = create_dataset("filelists/test.txt", segment_length, sampling_rate, hop_length, batch_size)
 
     latent_data = generate_latent_data(model, test_dataloader)
 
     cluster_centers, cluster_labels = kmeans_clustering(latent_data, num_clusters)
+
 
     # Print cluster labels and number of data points in each cluster
     for cluster_id in range(num_clusters):
