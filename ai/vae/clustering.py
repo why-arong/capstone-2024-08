@@ -1,76 +1,72 @@
 import torch
-import torchaudio
 from pathlib import Path
-
-Resample = torchaudio.transforms.Resample(44100, 48000, resampling_method='kaiser_window')
-
-if torch.cuda.is_available():
-    device = 'cuda:0'
-    my_cuda = 1
-else:
-    device = 'cpu'
-    my_cuda = 0
-
-Resample = Resample.to(device)
-
+from sklearn.cluster import KMeans
 from model import VAE
 from utils import create_dataset
 
-from sklearn.cluster import KMeans
-
-
-# Generate latent space data
+# Function to generate latent space data using the VAE model
 def generate_latent_data(model, dataloader):
     model.eval()
     latent_data = []
 
     with torch.no_grad():
         for data in dataloader:
-            recon_batch, mu, logvar = model(data)
+            recon_batch, mu, logvar = model.forward(data)
             latent_data.append(mu)
 
     latent_data = torch.cat(latent_data, dim=0)
     return latent_data.numpy()
 
+# Function to load VAE model from checkpoint
+def load_model_from_checkpoint(checkpoint_path, device):
+    state = torch.load(checkpoint_path, map_location=torch.device(device))
+    model = VAE(state['segment_length'], state['n_units'], state['n_hidden_units'], state['latent_dim']).to(device)
+    model.load_state_dict(state['state_dict'])
+    model.eval()
+    return model
 
-segment_length = 1024
-n_units = 256
-n_hidden_units = 64
-latent_dim = 8
+# Function to perform K-means clustering
+def kmeans_clustering(data, num_clusters):
+    kmeans = KMeans(n_clusters=num_clusters, random_state=0)
+    kmeans.fit(data)
+    cluster_centers = kmeans.cluster_centers_
+    cluster_labels = kmeans.labels_
+    return cluster_centers, cluster_labels
 
-batch_size = 256
-sampling_rate = 44100
-hop_length = 128
+if __name__ == "__main__":
+    # Constants
+    segment_length = 1024
+    n_units = 256
+    n_hidden_units = 64
+    latent_dim = 8
+    batch_size = 256
+    sampling_rate = 44100
+    hop_length = 128
+    num_clusters = 10
 
-state = torch.load(Path(r'ai/vae/model/ckpt'), map_location=torch.device(device))
+    # Device
+    device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
 
-if my_cuda:
-    model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
-else:
-    model = VAE(segment_length, n_units, n_hidden_units, latent_dim)
+    # Load VAE model
+    model_checkpoint_path = Path('ai/vae/model/ckpt')
+    model = load_model_from_checkpoint(model_checkpoint_path, device)
 
-model.load_state_dict(state['state_dict'])
-model.eval()
+    # Create test dataloader
+    test_dataloader, test_dataset_len = create_dataset("filelists/test.txt", segment_length, sampling_rate, hop_length, batch_size)
 
+    # Generate latent space data
+    latent_data = generate_latent_data(model, test_dataloader)
 
-test_dataloader, test_dataset_len = create_dataset("filelists/test.txt", segment_length, sampling_rate, hop_length, batch_size)
+    # Perform K-means clustering
+    cluster_centers, cluster_labels = kmeans_clustering(latent_data, num_clusters)
 
+    # Print cluster labels and number of data points in each cluster
+    for cluster_id in range(num_clusters):
+        num_points_in_cluster = sum(cluster_labels == cluster_id)
+        print(f"Cluster {cluster_id}: {num_points_in_cluster} data points")
 
-# Generate latent space data
-latent_data = generate_latent_data(model, test_dataloader)
-
-# Apply K-means clustering
-kmeans = KMeans(n_clusters=10, random_state=0)
-kmeans.fit(latent_data)
-
-# Get cluster centroids
-cluster_centers = kmeans.cluster_centers_
-
-# Get cluster labels for each data point
-cluster_labels = kmeans.labels_
-
-# Print cluster centroids and labels
-print("Cluster Centroids:")
-print(cluster_centers)
-print("Cluster Labels:")
-print(cluster_labels)
+    # Print cluster centroids and labels
+    print("Cluster Centroids:")
+    print(cluster_centers)
+    print("Cluster Labels:")
+    print(cluster_labels)
