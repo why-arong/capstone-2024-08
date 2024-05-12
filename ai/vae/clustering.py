@@ -66,7 +66,7 @@ if __name__ == "__main__":
     model.to(device) 
     model.eval()
 
-    test_dataloader, test_dataset_len = create_dataset("filelists/test.txt", segment_length, sampling_rate, hop_length, batch_size)
+    test_dataloader, test_dataset_len = create_dataset("filelists/train.txt", segment_length, sampling_rate, hop_length, batch_size)
 
     latent_data = generate_latent_data(model, test_dataloader)
 
