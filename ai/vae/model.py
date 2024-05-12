@@ -3,31 +3,36 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 class VAE(nn.Module):
-  def __init__(self, segment_length, n_units, latent_dim):
-    super(VAE, self).__init__()
+  def __init__(self, segment_length, n_units, n_hidden_units, latent_dim):
+      super(VAE, self).__init__()
 
-    self.segment_length = segment_length
-    self.n_units = n_units
-    self.latent_dim = latent_dim
-    
-    self.fc1 = nn.Linear(segment_length, n_units)
-    self.fc21 = nn.Linear(n_units, latent_dim)
-    self.fc22 = nn.Linear(n_units, latent_dim)
-    self.fc3 = nn.Linear(latent_dim, n_units)
-    self.fc4 = nn.Linear(n_units, segment_length)
+      self.segment_length = segment_length
+      self.n_units = n_units
+      self.latent_dim = latent_dim
+
+      self.fc1 = nn.Linear(segment_length, n_units)
+      self.fc2 = nn.Linear(n_units, n_hidden_units)
+      self.fc3 = nn.Linear(n_hidden_units, latent_dim)
+      self.fc4 = nn.Linear(n_hidden_units, latent_dim)
+
+      self.fc5 = nn.Linear(latent_dim, n_hidden_units)
+      self.fc6 = nn.Linear(n_hidden_units, n_units)
+      self.fc7 = nn.Linear(n_units, segment_length)
 
   def encode(self, x):
       h1 = F.relu(self.fc1(x))
-      return self.fc21(h1), self.fc22(h1)
+      h2 = F.relu(self.fc2(h1))
+      return self.fc3(h2), self.fc4(h2)
 
   def reparameterize(self, mu, logvar):
-      std = torch.exp(0.5*logvar)
+      std = torch.exp(0.5 * logvar)
       eps = torch.randn_like(std)
-      return mu + eps*std
+      return mu + eps * std
 
   def decode(self, z):
-      h3 = F.relu(self.fc3(z))
-      return F.tanh(self.fc4(h3))
+      h3 = F.relu(self.fc5(z))
+      h4 = F.relu(self.fc6(h3))
+      return F.tanh(self.fc7(h4))
 
   def forward(self, x):
       mu, logvar = self.encode(x.view(-1, self.segment_length))
