@@ -1,8 +1,6 @@
 import os
 import random
-import time
 
-import numpy as np
 import torch
 import torch.utils.data
 
@@ -11,7 +9,7 @@ from mel_processing import (mel_spectrogram_torch, spec_to_mel_torch,
                             spectrogram_torch)
 from text import cleaned_text_to_sequence, text_to_sequence
 from utils import load_filepaths_and_text, load_wav_to_torch
-
+from ai.vae.inference import get_cond
 
 class TextAudioLoader(torch.utils.data.Dataset):
     """
@@ -224,6 +222,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         self.hop_length = hparams.hop_length
         self.win_length = hparams.win_length
         self.sampling_rate = hparams.sampling_rate
+        self.vae_config = hparams.vae_config
 
         self.use_mel_spec_posterior = getattr(
             hparams, "use_mel_posterior_encoder", False
@@ -275,9 +274,10 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         )
         text = self.get_text(text)
         spec, wav = self.get_audio(audiopath)
+        cond = self.get_cond(wav, self.vae_config)
         sid = self.get_sid(sid)
-        return (text, spec, wav, sid)
-
+        return (text, spec, wav, cond, sid)
+    
     def get_audio(self, filename):
         # TODO : if linear spec exists convert to mel from existing linear spec
         audio, sampling_rate = load_wav_to_torch(filename)
