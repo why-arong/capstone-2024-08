@@ -48,9 +48,9 @@ def get_cond(wav, config):
 
     test_audio, fs = librosa.load(wav, sr=None)
 
-    test_dataset = AudioDataset(test_audio, segment_length = segment_length, sampling_rate = sampling_rate, transform=ToTensor())
+    test_dataset = AudioDataset(test_audio, segment_length = segment_length, sampling_rate = sampling_rate, hop_size=hop_length, transform=ToTensor())
     test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle=False)
 
-    test1_z_mu, test1_z_logvar = generate_latent_data(model, test_dataloader, device)
+    latent_data = generate_latent_data(model, test_dataloader, device)
 
-    return test1_z_mu, test1_z_logvar
+    return latent_data
