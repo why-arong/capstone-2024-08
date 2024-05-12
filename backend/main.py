@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile
+
 from feedback import levenshtein
 from fastapi.responses import JSONResponse, FileResponse
 import tempfile
@@ -8,6 +9,8 @@ from create_script.user_script.schemas.gpt_sch import GptRequestSch, GptResponse
 from fastapi.middleware.cors import CORSMiddleware
 from voice_converison import change_voice
 from tts import infer
+import text
+
 
 app = FastAPI()
 # CORS 설정
@@ -40,10 +43,12 @@ async def create_upload_file(user_wav: UploadFile = File(...)):
 
     # TODO: Add guide audio later
     guide_trans = "지난 해 극장을 찾은 연간 관객 수가 역대 최대치를 기록했습니다"
+
     print(user_trans, guide_trans)
-    # cleaned_guide = text._clean_text(guide, None)
-    # cleaned_user = text._clean_text(user, None)
-    similarity_percentage = levenshtein.dist(guide_trans, user_trans)
+
+    cleaned_guide = text._clean_text(guide_trans, None)
+    cleaned_user = text._clean_text(user_trans, None)
+    similarity_percentage = levenshtein.dist(cleaned_guide, cleaned_user)
     # similarity_percentage = levenshtein.dist(guide, user)
     return {"similarity_percentage": similarity_percentage}
 
@@ -53,11 +58,11 @@ async def provide_voice_guide(prompt: str):
     # test
 
     # part-1: tts
-    result_audio = infer(prompt)
+    guide_audio = infer(prompt)
 
 
     # part-2: voice conversion
-    change_voice("voice_converison/SPK064KBSCU001M001.wav", ["./_samples/SPK014KBSCU004F002.wav"])
+    change_voice("voice_converison/SPK064KBSCU001M001.wav", ["/home/ubuntu/forked/capstone-2024-08/backend/voice_converison/output_audio.wav"])
     print("conversion complete!!")
     return FileResponse("/home/ubuntu/forked/capstone-2024-08/backend/voice_converison/vc_out.wav", media_type="audio/wav")
 

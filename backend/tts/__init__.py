@@ -12,6 +12,8 @@ from data_utils import TextAudioLoader, TextAudioCollate, TextAudioSpeakerLoader
 from models import SynthesizerTrn
 from ..text.symbols import symbols
 from ..text import text_to_sequence
+import soundfile as sf
+
 
 from scipy.io.wavfile import write
 
@@ -41,4 +43,6 @@ def infer(script: str):
         sid = torch.LongTensor([25]).cpu()
         audio = net_g.infer(x_tst, x_tst_lengths, sid=sid, noise_scale=.667, noise_scale_w=0.8, length_scale=1.0)[0][
             0, 0].data.cpu().float().numpy()
+    # `audio`는 NumPy 배열 형태의 음성 데이터이고, `hps.data.sampling_rate`는 해당 데이터의 샘플링 레이트입니다.
+    sf.write('output_audio.wav', audio, hps.data.sampling_rate)
     return audio
