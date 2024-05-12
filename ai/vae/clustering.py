@@ -1,24 +1,13 @@
 import torch
-from pathlib import Path
-from sklearn.cluster import KMeans
-from model import VAE
-from utils import create_dataset
 import numpy as np
-import  sys, argparse
+
 import configparser
+import  sys, argparse
 
+from sklearn.cluster import KMeans
 
-def generate_latent_data(model, dataloader):
-    model.eval()
-    latent_data = []
-
-    with torch.no_grad():
-        for data in dataloader:
-            _, mu, _ = model.forward(data.to(device))
-            latent_data.append(mu.cpu().detach())
-
-    latent_data = torch.cat(latent_data, dim=0)
-    return latent_data.numpy()
+from model import VAE
+from utils import create_dataset, generate_latent_data
 
 
 # Function to perform K-means clustering
@@ -56,7 +45,7 @@ if __name__ == "__main__":
 
     num_clusters = 10
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-    model_checkpoint_path = 'run/002/model/'
+    model_checkpoint_path = 'model/'
     model_name = 'best_model.pt'
 
     model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
@@ -67,7 +56,7 @@ if __name__ == "__main__":
 
     test_dataloader, test_dataset_len = create_dataset("filelists/train_half.txt", segment_length, sampling_rate, hop_length, batch_size)
 
-    latent_data = generate_latent_data(model, test_dataloader)
+    latent_data = generate_latent_data(model, test_dataloader, device)
 
     cluster_centers, cluster_labels = kmeans_clustering(latent_data, num_clusters)
 
@@ -79,6 +68,7 @@ if __name__ == "__main__":
 
     print("Cluster Centroids:")
     print(cluster_centers)
+    
     print("Cluster Labels:")
     print(cluster_labels)
     
