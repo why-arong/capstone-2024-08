@@ -83,7 +83,7 @@ if __name__ == "__main__":
     print("Cluster Labels:")
     print(cluster_labels)
     
-    output_file = model_checkpoint_path / "cluster_results.txt"
+    output_file = model_checkpoint_path + "cluster_results.txt"
     np.savetxt(output_file, cluster_centers)
     with open(output_file, "a") as f:
         f.write("\n")
