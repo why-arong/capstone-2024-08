@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch import optim
 
 from model import VAE, loss_function
-from tests import init_test_audio
+from ai.vae.utils import init_test_audio
 from dataset import AudioDataset, ToTensor
 
 import numpy as np
