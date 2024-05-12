@@ -8,16 +8,14 @@ import  sys, argparse
 import configparser
 
 
-# Function to generate latent space data using the VAE model
 def generate_latent_data(model, dataloader):
     model.eval()
     latent_data = []
 
     with torch.no_grad():
         for data in dataloader:
-            data = data.to(device)
-            _, mu, _ = model.forward(data)
-            latent_data.append(mu)
+            _, mu, _ = model.forward(data.to(device))
+            latent_data.append(mu.cpu().detach())
 
     latent_data = torch.cat(latent_data, dim=0)
     return latent_data.numpy()
