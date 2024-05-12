@@ -23,14 +23,9 @@ import IPython.display as display
 from model import VAE
 from dataset import TestDataset, ToTensor
 
-
-sampling_rate = 44100
-sr = sampling_rate
-
-hop_length = 128
-
 segment_length = 1024
 n_units = 256
+n_hidden_units = 64
 latent_dim = 8
 
 batch_size = 256
@@ -39,9 +34,9 @@ batch_size = 256
 state = torch.load(Path(r'ai/vae/model/ckpt'), map_location=torch.device(device))
 
 if my_cuda:
-    model = VAE(segment_length, n_units, latent_dim).to(device)
+    model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
 else:
-    model = VAE(segment_length, n_units, latent_dim)
+    model = VAE(segment_length, n_units, n_hidden_units, latent_dim)
 
 model.load_state_dict(state['state_dict'])
 model.eval()

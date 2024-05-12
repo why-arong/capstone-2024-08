@@ -89,14 +89,11 @@ while True:
         raise
 
 config['dataset']['workspace'] = str(workdir.resolve())
-
 print("Workspace: {}".format(workdir))
 
 
 # Create the dataset
 print('creating the dataset...')
-
-# Usage example:
 train_dataloader, train_dataset_len = create_dataset("filelists/train.txt", segment_length, sampling_rate, hop_length, batch_size)
 validation_dataloader, val_dataset_len = create_dataset("filelists/val.txt", segment_length, sampling_rate, hop_length, batch_size)
 
@@ -116,17 +113,14 @@ log_dir = workdir / 'logs'
 os.makedirs(log_dir, exist_ok=True)
 
 if generate_test:
-
   test_dataset, audio_log_dir = init_test_audio(workdir, sampling_rate, segment_length)
   test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle=False)
 
 
 # Neural Network
-# state = torch.load(Path(r'model/ckpt_00500'), map_location=torch.device(device))
-
 model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-
+# state = torch.load(Path(r'model/ckpt_00500'), map_location=torch.device(device))
 # model.load_state_dict(state['state_dict'])
 
 
@@ -144,8 +138,6 @@ for epoch in range(epochs):
   train_loss = 0
   
   for i, data in enumerate(train_dataloader):
-    
-    # data, = data
     data = data.to(device)
     optimizer.zero_grad()
     recon_batch, mu, logvar = model(data)
