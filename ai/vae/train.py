@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader
 from torch import optim
 
 from model import VAE, loss_function
-from ai.vae.utils import init_test_audio, create_dataset
+from utils import init_test_audio, create_dataset
 
 import os, sys, argparse, time
 from pathlib import Path

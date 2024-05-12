@@ -14,7 +14,7 @@ else:
 Resample = Resample.to(device)
 
 from model import VAE
-from ai.vae.utils import create_dataset
+from utils import create_dataset
 
 from sklearn.cluster import KMeans
 
