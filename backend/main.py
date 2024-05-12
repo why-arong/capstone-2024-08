@@ -1,14 +1,15 @@
 from fastapi import FastAPI, File, UploadFile
-from feedback import levenshtein, text
-from fastapi.responses import JSONResponse
+from feedback import levenshtein
+from fastapi.responses import JSONResponse, FileResponse
 import tempfile
 from feedback import stt
-from create_script import gpt
-from create_script.schemas.gpt_sch import GptRequestSch, GptResponseSch
+from create_script.user_script import create_user_script 
+from create_script.user_script.schemas.gpt_sch import GptRequestSch, GptResponseSch
 from fastapi.middleware.cors import CORSMiddleware
+from voice_converison import change_voice
+from tts import infer
 
 app = FastAPI()
-
 # CORS 설정
 app.add_middleware(
     CORSMiddleware,
@@ -16,9 +17,10 @@ app.add_middleware(
     allow_methods=["GET", "POST", "OPTIONS"],
 )
 
+
 @app.post("/script", response_model= GptResponseSch)
 async def create_script(req: GptRequestSch):
-    script = await gpt.create_script_by_gpt(req)
+    script = await create_user_script.create_script_by_gpt(req)
     return {"script": script}
 
 
@@ -44,6 +46,20 @@ async def create_upload_file(user_wav: UploadFile = File(...)):
     similarity_percentage = levenshtein.dist(guide_trans, user_trans)
     # similarity_percentage = levenshtein.dist(guide, user)
     return {"similarity_percentage": similarity_percentage}
+
+
+@app.post("/voice_guide/")
+async def provide_voice_guide(prompt: str):
+    # test
+
+    # part-1: tts
+    result_audio = infer(prompt)
+
+
+    # part-2: voice conversion
+    change_voice("voice_converison/SPK064KBSCU001M001.wav", ["./_samples/SPK014KBSCU004F002.wav"])
+    print("conversion complete!!")
+    return FileResponse("/home/ubuntu/forked/capstone-2024-08/backend/voice_converison/vc_out.wav", media_type="audio/wav")
 
 
 if __name__ == "__main__":
