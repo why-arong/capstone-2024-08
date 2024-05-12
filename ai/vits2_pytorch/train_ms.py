@@ -1,7 +1,4 @@
-import argparse
-import itertools
-import json
-import math
+
 import os
 
 import torch
@@ -9,7 +6,6 @@ import torch.distributed as dist
 # from tensorboardX import SummaryWriter
 import torch.multiprocessing as mp
 import tqdm
-from torch import nn, optim
 from torch.cuda.amp import GradScaler, autocast
 from torch.nn import functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -17,7 +13,6 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 import commons
-import models
 import utils
 from data_utils import (DistributedBucketSampler, TextAudioSpeakerCollate,
                         TextAudioSpeakerLoader)
