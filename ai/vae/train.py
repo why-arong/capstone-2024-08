@@ -152,16 +152,15 @@ if generate_test:
 
 
 # Neural Network
-state = torch.load(Path(r'model/ckpt_00500'), map_location=torch.device(device))
+# state = torch.load(Path(r'model/ckpt_00500'), map_location=torch.device(device))
 
 model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
 optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
-model.load_state_dict(state['state_dict'])
+# model.load_state_dict(state['state_dict'])
 
 
 # Some dummy variables to keep track of loss situation
-
 train_loss_prev = 1000000
 best_loss = 1000000
 final_loss = 1000000
