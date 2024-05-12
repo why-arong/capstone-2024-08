@@ -47,3 +47,9 @@ python3 preprocess_filelist.py
 ```bash
 python3 train.py
 ```
+
+## Clustering
+
+```bash
+python3 clustering.py --config path/to/ckpt/config.ini
+```
