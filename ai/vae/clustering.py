@@ -23,7 +23,7 @@ def generate_latent_data(model, dataloader):
 
 # Function to perform K-means clustering
 def kmeans_clustering(data, num_clusters):
-    kmeans = KMeans(n_clusters=num_clusters, random_state=0)
+    kmeans = KMeans(n_clusters=num_clusters, init='k-means++', random_state=0)
     kmeans.fit(data)
     cluster_centers = kmeans.cluster_centers_
     cluster_labels = kmeans.labels_
@@ -32,12 +32,10 @@ def kmeans_clustering(data, num_clusters):
 
 if __name__ == "__main__":
 
-    # Parse arguments
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, default ='./default.ini' , help='path to the config file')
     args = parser.parse_args()
 
-    # Get configs
     config_path = args.config
     config = configparser.ConfigParser(allow_no_value=True)
     try: 
@@ -45,7 +43,7 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print('Config File Not Found at {}'.format(config_path))
         sys.exit()
-    print(config.values())
+
     sampling_rate = config['audio'].getint('sampling_rate')
     hop_length = config['audio'].getint('hop_length')
     segment_length = config['audio'].getint('segment_length')
