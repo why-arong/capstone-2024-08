@@ -1,4 +1,5 @@
 import os
+import torch
 from torch.utils.data import DataLoader
 
 from dataset import AudioDataset, TestDataset, ToTensor
@@ -59,3 +60,16 @@ def create_dataset(file_path, segment_length, sampling_rate, hop_length, batch_s
     dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
     
     return dataloader, len(dataset)
+
+
+def generate_latent_data(model, dataloader, device='cuda:0'):
+    model.eval()
+    latent_data = []
+
+    with torch.no_grad():
+        for data in dataloader:
+            _, mu, _ = model.forward(data.to(device))
+            latent_data.append(mu.cpu().detach())
+
+    latent_data = torch.cat(latent_data, dim=0)
+    return latent_data.numpy()
