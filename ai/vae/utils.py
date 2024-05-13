@@ -61,7 +61,7 @@ def create_dataset(file_path, segment_length, sampling_rate, hop_length, batch_s
     
     return dataloader, len(dataset)
 
-
+# TODO: 공분산 고려해야하는지 생각해보기
 def generate_latent_data(model, dataloader, device='cuda:0'):
     model.eval()
     latent_data = []
