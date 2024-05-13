@@ -4,7 +4,7 @@ from torch.utils.data import DataLoader
 import librosa
 import librosa.display
 import IPython.display as display
-from dataset import TestDataset, ToTensor
+from dataset import AudioDataset, ToTensor
 
 import configparser
 import  sys, argparse
@@ -12,10 +12,7 @@ import  sys, argparse
 from model import VAE
 from utils import generate_latent_data
 
-
-
-if __name__ == "__main__":
-
+def get_cond(wav, config):
     parser = argparse.ArgumentParser()
     parser.add_argument('--config', type=str, default ='./default.ini' , help='path to the config file')
     args = parser.parse_args()
@@ -49,13 +46,11 @@ if __name__ == "__main__":
     model.to(device) 
     model.eval()
 
-    test_audio_path = ""
-    test_audio, fs = librosa.load(test_audio_path, sr=None)
+    test_audio, fs = librosa.load(wav, sr=None)
 
-    display.Audio(test_audio, rate=fs)
-
-
-    test_dataset = TestDataset(test_audio, segment_length = segment_length, sampling_rate = sampling_rate, transform=ToTensor())
+    test_dataset = AudioDataset(test_audio, segment_length = segment_length, sampling_rate = sampling_rate, hop_size=hop_length, transform=ToTensor())
     test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle=False)
 
-    test1_z_mu, test1_z_logvar = generate_latent_data(model, test_dataloader, device)
+    latent_data = generate_latent_data(model, test_dataloader, device)
+
+    return latent_data
