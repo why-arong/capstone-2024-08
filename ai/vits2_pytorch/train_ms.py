@@ -324,6 +324,7 @@ def train_and_evaluate(
         spec_lengths,
         y,
         y_lengths,
+        cond,
         speakers,
     ) in enumerate(loader):
         if net_g.module.use_noise_scaled_mas:
@@ -342,7 +343,7 @@ def train_and_evaluate(
             rank, non_blocking=True
         )
         speakers = speakers.cuda(rank, non_blocking=True)
-
+        # TODO: add cond
         with autocast(enabled=hps.train.fp16_run):
             (
                 y_hat,
