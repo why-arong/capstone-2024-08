@@ -1,7 +1,4 @@
-import argparse
-import itertools
-import json
-import math
+
 import os
 
 import torch
@@ -9,7 +6,6 @@ import torch.distributed as dist
 # from tensorboardX import SummaryWriter
 import torch.multiprocessing as mp
 import tqdm
-from torch import nn, optim
 from torch.cuda.amp import GradScaler, autocast
 from torch.nn import functional as F
 from torch.nn.parallel import DistributedDataParallel as DDP
@@ -17,7 +13,6 @@ from torch.utils.data import DataLoader
 from torch.utils.tensorboard import SummaryWriter
 
 import commons
-import models
 import utils
 from data_utils import (DistributedBucketSampler, TextAudioSpeakerCollate,
                         TextAudioSpeakerLoader)
@@ -129,10 +124,6 @@ def run(rank, n_gpus, hps):
         "use_spk_conditioned_encoder" in hps.model.keys()
         and hps.model.use_spk_conditioned_encoder == True
     ):
-        if hps.data.n_speakers == 0:
-            raise ValueError(
-                "n_speakers must be > 0 when using spk conditioned encoder to train multi-speaker model"
-            )
         use_spk_conditioned_encoder = True
     else:
         print("Using normal encoder for VITS1")
@@ -176,7 +167,7 @@ def run(rank, n_gpus, hps):
                 hps.model.hidden_channels,
                 3,
                 0.1,
-                gin_channels=hps.model.gin_channels if hps.data.n_speakers != 0 else 0,
+                gin_channels=hps.model.gin_channels,
             ).cuda(rank)
         elif duration_discriminator_type == "dur_disc_2":
             net_dur_disc = DurationDiscriminatorV2(
@@ -184,7 +175,7 @@ def run(rank, n_gpus, hps):
                 hps.model.hidden_channels,
                 3,
                 0.1,
-                gin_channels=hps.model.gin_channels if hps.data.n_speakers != 0 else 0,
+                gin_channels=hps.model.gin_channels,
             ).cuda(rank) 
     else:
         print("NOT using any duration discriminator like VITS1")
@@ -195,7 +186,7 @@ def run(rank, n_gpus, hps):
         len(symbols),
         posterior_channels,
         hps.train.segment_size // hps.data.hop_length,
-        n_speakers=hps.data.n_speakers,
+        cond_lengths=hps.data.cond_lengths,
         mas_noise_scale_initial=mas_noise_scale_initial,
         noise_scale_delta=noise_scale_delta,
         **hps.model,
@@ -329,6 +320,8 @@ def train_and_evaluate(
         spec_lengths,
         y,
         y_lengths,
+        cond,
+        cond_lengths,
         speakers,
     ) in enumerate(loader):
         if net_g.module.use_noise_scaled_mas:
@@ -346,8 +339,7 @@ def train_and_evaluate(
         y, y_lengths = y.cuda(rank, non_blocking=True), y_lengths.cuda(
             rank, non_blocking=True
         )
-        speakers = speakers.cuda(rank, non_blocking=True)
-
+        cond = cond.cuda(rank, non_blocking=True)
         with autocast(enabled=hps.train.fp16_run):
             (
                 y_hat,
@@ -358,7 +350,7 @@ def train_and_evaluate(
                 z_mask,
                 (z, z_p, m_p, logs_p, m_q, logs_q),
                 (hidden_x, logw, logw_),
-            ) = net_g(x, x_lengths, spec, spec_lengths, speakers)
+            ) = net_g(x, x_lengths, spec, spec_lengths, cond)
 
             if (
                 hps.model.use_mel_posterior_encoder
@@ -566,12 +558,14 @@ def evaluate(hps, generator, eval_loader, writer_eval):
             spec_lengths,
             y,
             y_lengths,
+            cond,
+            cond_lengths,
             speakers,
         ) in enumerate(eval_loader):
             x, x_lengths = x.cuda(0), x_lengths.cuda(0)
             spec, spec_lengths = spec.cuda(0), spec_lengths.cuda(0)
             y, y_lengths = y.cuda(0), y_lengths.cuda(0)
-            speakers = speakers.cuda(0)
+            cond = cond.cuda(0)
 
             # remove else
             x = x[:1]
@@ -580,10 +574,10 @@ def evaluate(hps, generator, eval_loader, writer_eval):
             spec_lengths = spec_lengths[:1]
             y = y[:1]
             y_lengths = y_lengths[:1]
-            speakers = speakers[:1]
+            cond = cond[:1]
             break
         y_hat, attn, mask, *_ = generator.module.infer(
-            x, x_lengths, speakers, max_len=1000
+            x, x_lengths, cond, max_len=1000
         )
         y_hat_lengths = mask.sum([1, 2]).long() * hps.data.hop_length
 
