@@ -30,6 +30,7 @@
       "mel_fmin": 0.0,
       "mel_fmax": null,
       "add_blank": false,
+      "_comment" : "TDOO: set n_speakers",
       "n_speakers": 109,
       "cleaned_text": true,
       "vae_config": "ai/vae/model/config.ini"
