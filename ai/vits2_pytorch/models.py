@@ -1236,12 +1236,13 @@ class SynthesizerTrn(nn.Module):
                 hidden_channels, 256, 3, 0.5, gin_channels=gin_channels
             )
 
+        # TDOO: change speakers embedding to cond embedding
         if n_speakers > 1:
             self.emb_g = nn.Embedding(n_speakers, gin_channels)
 
     def forward(self, x, x_lengths, y, y_lengths, sid=None):
         if self.n_speakers > 0:
-            g = self.emb_g(sid).unsqueeze(-1)  # [b, h, 1]
+            g = self.emb_g(sid).unsqueeze(-1)  # [batch, gin_channels, 1] = [b, h, 1]
         else:
             g = None
 
