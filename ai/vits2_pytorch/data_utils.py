@@ -374,6 +374,7 @@ class TextAudioSpeakerCollate:
         text_lengths = torch.LongTensor(len(batch))
         spec_lengths = torch.LongTensor(len(batch))
         wav_lengths = torch.LongTensor(len(batch))
+        cond_lengths = torch.LongTensor(len(batch))
         sid = torch.LongTensor(len(batch))
 
         text_padded = torch.LongTensor(len(batch), max_text_len)
@@ -403,6 +404,7 @@ class TextAudioSpeakerCollate:
 
             cond = row[3]
             cond_padded[i, : cond.size(1)] = cond 
+            cond_lengths[i] = cond.size(1)
 
             sid[i] = row[4]
 
@@ -415,6 +417,7 @@ class TextAudioSpeakerCollate:
                 wav_padded,
                 wav_lengths,
                 cond_padded,
+                cond_lengths,
                 sid,
                 ids_sorted_decreasing,
             )
@@ -426,6 +429,7 @@ class TextAudioSpeakerCollate:
             wav_padded,
             wav_lengths,
             cond_padded,
+            cond_lengths,
             sid,
         )
 
