@@ -124,10 +124,6 @@ def run(rank, n_gpus, hps):
         "use_spk_conditioned_encoder" in hps.model.keys()
         and hps.model.use_spk_conditioned_encoder == True
     ):
-        if hps.data.n_speakers == 0:
-            raise ValueError(
-                "n_speakers must be > 0 when using spk conditioned encoder to train multi-speaker model"
-            )
         use_spk_conditioned_encoder = True
     else:
         print("Using normal encoder for VITS1")
@@ -171,7 +167,7 @@ def run(rank, n_gpus, hps):
                 hps.model.hidden_channels,
                 3,
                 0.1,
-                gin_channels=hps.model.gin_channels if hps.data.n_speakers != 0 else 0,
+                gin_channels=hps.model.gin_channels,
             ).cuda(rank)
         elif duration_discriminator_type == "dur_disc_2":
             net_dur_disc = DurationDiscriminatorV2(
@@ -179,7 +175,7 @@ def run(rank, n_gpus, hps):
                 hps.model.hidden_channels,
                 3,
                 0.1,
-                gin_channels=hps.model.gin_channels if hps.data.n_speakers != 0 else 0,
+                gin_channels=hps.model.gin_channels,
             ).cuda(rank) 
     else:
         print("NOT using any duration discriminator like VITS1")
@@ -190,7 +186,7 @@ def run(rank, n_gpus, hps):
         len(symbols),
         posterior_channels,
         hps.train.segment_size // hps.data.hop_length,
-        n_speakers=hps.data.n_speakers,
+        cond_lengths=hps.data.cond_lengths,
         mas_noise_scale_initial=mas_noise_scale_initial,
         noise_scale_delta=noise_scale_delta,
         **hps.model,
@@ -325,6 +321,7 @@ def train_and_evaluate(
         y,
         y_lengths,
         cond,
+        cond_lengths,
         speakers,
     ) in enumerate(loader):
         if net_g.module.use_noise_scaled_mas:
@@ -562,6 +559,7 @@ def evaluate(hps, generator, eval_loader, writer_eval):
             y,
             y_lengths,
             cond,
+            cond_lengths,
             speakers,
         ) in enumerate(eval_loader):
             x, x_lengths = x.cuda(0), x_lengths.cuda(0)
