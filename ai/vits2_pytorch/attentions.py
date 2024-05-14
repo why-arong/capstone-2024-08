@@ -33,13 +33,14 @@ class Encoder(nn.Module):  # backward compatible vits2 encoder
         self.window_size = window_size
 
         self.drop = nn.Dropout(p_dropout)
-        self.attn_layers_x = nn.ModuleList()  # Attention layers for x
-        self.attn_layers_g = nn.ModuleList()  # Attention layers for g
+        self.attn_layers_x = nn.ModuleList()
+        self.attn_layers_g = nn.ModuleList()
         self.norm_layers_1 = nn.ModuleList()
         self.ffn_layers = nn.ModuleList()
         self.norm_layers_2 = nn.ModuleList()
         # if kwargs has spk_emb_dim, then add a linear layer to project spk_emb_dim to hidden_channels
         self.cond_layer_idx = self.n_layers
+
         if "gin_channels" in kwargs:
             self.gin_channels = kwargs["gin_channels"]
             if self.gin_channels != 0:
@@ -86,6 +87,7 @@ class Encoder(nn.Module):  # backward compatible vits2 encoder
     def forward(self, x, x_mask, g=None):
         attn_mask = x_mask.unsqueeze(2) * x_mask.unsqueeze(-1)
         x = x * x_mask
+
         for i in range(self.n_layers):
             key = x
             value = x
@@ -93,7 +95,6 @@ class Encoder(nn.Module):  # backward compatible vits2 encoder
                 g = self.spk_emb_linear(g.transpose(1, 2))
                 g = g.transpose(1, 2)
                 g_attn = self.attn_layers_g[i](g, g, attn_mask=None)  
-
                 key = g_attn
                 value = g_attn
 
@@ -104,6 +105,7 @@ class Encoder(nn.Module):  # backward compatible vits2 encoder
             y = self.ffn_layers[i](x, x_mask)
             y = self.drop(y)
             x = self.norm_layers_2[i](x + y)
+
         x = x * x_mask
         return x
 
