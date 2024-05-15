@@ -74,6 +74,7 @@ python3 preprocess.py --text_index 2 --filelists filelists/loro_audio_sid_text_t
 
 ## Train
 ```bash
+python3 train_ms.py -c configs/vits2_loro_base.json -m loro 
 ```
 
 ## Inference
