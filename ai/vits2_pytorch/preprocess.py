@@ -24,7 +24,7 @@ for filelist in args.filelists:
     with open(filelist, "r", encoding="utf-8") as f:
         lines = f.readlines()
 
-    batch_size = 100
+    batch_size = 64
     for i in range(0, len(lines), batch_size):
         batch_lines = lines[i:i+batch_size]
 
