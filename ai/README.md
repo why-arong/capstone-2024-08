@@ -67,10 +67,6 @@ cd monotonic_align
 python setup.py build_ext --inplace
 
 cd ..
-
-pip3 install g2pK
-pip3 install jamotools
-
 python3 preprocess.py --text_index 2 --filelists filelists/loro_audio_sid_text_train_filelist.txt filelists/loro_audio_sid_text_val_filelist.txt filelists/loro_audio_sid_text_test_filelist.txt
 
 ```
