@@ -126,7 +126,7 @@ def english_cleaners3(text):
     phonemes = collapse_whitespace(phonemes)
     return phonemes
 
-
+# TODO: Fix number duplication (11) / (십 일)
 def korean_cleaners(text):
     """Pipeline for Korean text, including number and abbreviation expansion."""
     text = jamotools.join_jamos(text)
