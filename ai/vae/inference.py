@@ -3,14 +3,14 @@ from torch.utils.data import DataLoader
 
 import librosa
 import librosa.display
-import IPython.display as display
-from dataset import AudioDataset, ToTensor
 
 import configparser
 import  sys, argparse
 
-from model import VAE
-from utils import generate_latent_data
+from vae.dataset import AudioDataset, ToTensor
+
+from vae.model import VAE
+from vae.utils import generate_latent_data
 
 def get_cond(wav, config):
     parser = argparse.ArgumentParser()

@@ -9,7 +9,11 @@ from mel_processing import (mel_spectrogram_torch, spec_to_mel_torch,
                             spectrogram_torch)
 from text import cleaned_text_to_sequence, text_to_sequence
 from utils import load_filepaths_and_text, load_wav_to_torch
-from ai.vae.inference import get_cond
+
+import sys
+sys.path.append('../')
+
+from vae.inference import get_cond
 
 class TextAudioLoader(torch.utils.data.Dataset):
     """

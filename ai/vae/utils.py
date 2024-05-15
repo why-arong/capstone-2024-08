@@ -2,7 +2,7 @@ import os
 import torch
 from torch.utils.data import DataLoader
 
-from dataset import AudioDataset, TestDataset, ToTensor
+from vae.dataset import AudioDataset, TestDataset, ToTensor
 
 import numpy as np
 import librosa
