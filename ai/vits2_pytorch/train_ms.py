@@ -37,6 +37,7 @@ def main():
     os.environ["MASTER_PORT"] = "6060"
 
     hps = utils.get_hparams()
+    
     mp.spawn(
         run,
         nprocs=n_gpus,
@@ -48,6 +49,8 @@ def main():
 
 
 def run(rank, n_gpus, hps):
+    mp.set_sharing_strategy('file_system')
+
     net_dur_disc = None
     global global_step
     if rank == 0:
@@ -79,7 +82,7 @@ def run(rank, n_gpus, hps):
     train_sampler = DistributedBucketSampler(
         train_dataset,
         hps.train.batch_size,
-        [32, 300, 400, 500, 600, 700, 800, 900, 1000],
+        [32, 300, 400, 500, 600, 700, 800],
         num_replicas=n_gpus,
         rank=rank,
         shuffle=True,
@@ -87,19 +90,20 @@ def run(rank, n_gpus, hps):
     collate_fn = TextAudioSpeakerCollate()
     train_loader = DataLoader(
         train_dataset,
-        num_workers=8,
+        batch_size=1,
+        # num_workers=0,
         shuffle=False,
         pin_memory=True,
         collate_fn=collate_fn,
-        batch_sampler=train_sampler,
+        # batch_sampler=train_sampler,
     )
     if rank == 0:
         eval_dataset = TextAudioSpeakerLoader(hps.data.validation_files, hps.data)
         eval_loader = DataLoader(
             eval_dataset,
-            num_workers=8,
+            # num_workers=0,
             shuffle=False,
-            batch_size=hps.train.batch_size,
+            batch_size=1,
             pin_memory=True,
             drop_last=False,
             collate_fn=collate_fn,
@@ -301,7 +305,7 @@ def train_and_evaluate(
     if writers is not None:
         writer, writer_eval = writers
 
-    train_loader.batch_sampler.set_epoch(epoch)
+    # train_loader.batch_sampler.set_epoch(epoch)
     global global_step
 
     net_g.train()
