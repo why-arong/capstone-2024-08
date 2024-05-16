@@ -3,9 +3,7 @@ import os
 import sys
 
 import torch
-import torch.distributed as dist
 # from tensorboardX import SummaryWriter
-import torch.multiprocessing as mp
 import tqdm
 from torch.cuda.amp import GradScaler, autocast
 from torch.nn import functional as F
@@ -14,8 +12,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 import commons
 import utils
-from data_utils import (TextAudioSpeakerCollate,
-                        TextAudioSpeakerLoader)
+from data_utils import (TextAudioSpeakerCollate, TextAudioSpeakerLoader)
 from losses import discriminator_loss, feature_loss, generator_loss, kl_loss
 from mel_processing import mel_spectrogram_torch, spec_to_mel_torch
 from models import (AVAILABLE_DURATION_DISCRIMINATOR_TYPES,
@@ -33,16 +30,15 @@ def main():
     """Assume Single Node Multi GPUs Training Only"""
     assert torch.cuda.is_available(), "CPU training is not allowed."
 
-    n_gpus = torch.cuda.device_count()
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "6060"
 
     hps = utils.get_hparams(sys.argv[1:])
     
-    run(n_gpus=n_gpus, hps=hps)
+    run(hps=hps)
 
 
-def run(n_gpus, hps):
+def run(hps):
 
     net_dur_disc = None
     global global_step
