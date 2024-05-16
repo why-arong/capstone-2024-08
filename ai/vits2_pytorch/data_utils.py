@@ -228,7 +228,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         self.hop_length = hparams.hop_length
         self.win_length = hparams.win_length
         self.sampling_rate = hparams.sampling_rate
-        self.vae_config = hparams.vae_config
+        self.vae_path = hparams.vae_path
 
         print(len(self.audiopaths_sid_text), "Audio files found")
 
@@ -283,8 +283,11 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         )
         text = self.get_text(text)
         spec, wav = self.get_audio(audiopath)
-        cond = get_cond(wav, self.vae_config)
+        print(spec.size(), wav.size())
+        cond = get_cond(wav, self.vae_path)
+        print(cond)
         sid = self.get_sid(sid)
+        print(cond)
         return (text, spec, wav, cond, sid)
     
     def get_audio(self, filename):

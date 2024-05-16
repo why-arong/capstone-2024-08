@@ -33,7 +33,7 @@
       "_comment" : "TDOO: check max_cond_length and change cond_lengths to max_cond_length",
       "cond_lengths": 1024,
       "cleaned_text": true,
-      "vae_config": "ai/vae/model/config.ini"
+      "vae_path": "../vae/model/"
     },
     "model": {
       "use_mel_posterior_encoder": true,

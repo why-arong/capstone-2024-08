@@ -6,21 +6,19 @@ import librosa.display
 
 import configparser
 import  sys, argparse
+sys.path.append('../vae')
 
-from vae.dataset import AudioDataset, ToTensor
-
-from vae.model import VAE
+from dataset import AudioDataset, ToTensor
+from model import VAE
 from vae.utils import generate_latent_data
 
-def get_cond(wav, config):
-    parser = argparse.ArgumentParser()
-    parser.add_argument('--config', type=str, default ='./default.ini' , help='path to the config file')
-    args = parser.parse_args()
+def get_cond(wav, path):
+    config_path = path + 'config.ini'
 
-    config_path = args.config
     config = configparser.ConfigParser(allow_no_value=True)
     try: 
         config.read(config_path)
+        print('Config File Found at {}'.format(config_path))
     except FileNotFoundError:
         print('Config File Not Found at {}'.format(config_path))
         sys.exit()
@@ -36,13 +34,12 @@ def get_cond(wav, config):
 
 
     device = 'cuda:0' if torch.cuda.is_available() else 'cpu'
-    model_checkpoint_path = 'model/'
-    model_name = 'best_model.pt'
+    model_path = path + 'best_model.pt'
 
     model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
 
-
-    model = torch.load(model_checkpoint_path+model_name, map_location=torch.device(device))
+    print(model)
+    model = torch.load(model_path, map_location=torch.device(device))
     model.to(device) 
     model.eval()
 
