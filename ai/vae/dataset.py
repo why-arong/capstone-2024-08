@@ -36,7 +36,9 @@ class AudioDataset(torch.utils.data.Dataset):
         return sample
 
     def __len__(self):
-        return (len(self.audio_np) // self.hop_size) - (self.segment_length // self.hop_size) + 1
+        length = (len(self.audio_np) // self.hop_size) - (self.segment_length // self.hop_size) + 1
+        length = length if length > 0 else 0
+        return length
 
 class ToTensor(object):
     """Convert ndarrays in sample to Tensors."""
