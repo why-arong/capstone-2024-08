@@ -33,6 +33,8 @@ class TextAudioLoader(torch.utils.data.Dataset):
         self.win_length = hparams.win_length
         self.sampling_rate = hparams.sampling_rate
 
+        print(len(self.audiopaths_and_text), "Audio files found")
+
         self.use_mel_spec_posterior = getattr(
             hparams, "use_mel_posterior_encoder", False
         )
@@ -228,6 +230,8 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         self.sampling_rate = hparams.sampling_rate
         self.vae_config = hparams.vae_config
 
+        print(len(self.audiopaths_sid_text), "Audio files found")
+
         self.use_mel_spec_posterior = getattr(
             hparams, "use_mel_posterior_encoder", False
         )
@@ -256,6 +260,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         lengths = []
         for audiopath, sid, text in self.audiopaths_sid_text:
             if not os.path.isfile(audiopath):
+                print(f"file not found: {audiopath}")
                 continue
             if self.min_text_len <= len(text) and len(text) <= self.max_text_len:
                 audiopaths_sid_text_new.append([audiopath, sid, text])
@@ -266,7 +271,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         self.audiopaths_sid_text = audiopaths_sid_text_new
         self.lengths = lengths
         print(
-            len(self.lengths)
+            "filter", len(self.lengths)
         )  # if we use large corpus dataset, we can check how much time it takes.
 
     def get_audio_text_speaker_pair(self, audiopath_sid_text):
@@ -287,7 +292,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         audio, sampling_rate = load_wav_to_torch(filename)
         if sampling_rate != self.sampling_rate:
             raise ValueError(
-                "{} {} SR doesn't match target {} SR".format(
+                "{} SR doesn't match target {} SR".format(
                     sampling_rate, self.sampling_rate
                 )
             )
@@ -508,7 +513,6 @@ class DistributedBucketSampler(torch.utils.data.distributed.DistributedSampler):
             len_bucket = len(bucket)
             ids_bucket = indices[i]
             num_samples_bucket = self.num_samples_per_bucket[i]
-
             # add extra samples to make it evenly divisible
             rem = num_samples_bucket - len_bucket
             ids_bucket = (
