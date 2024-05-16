@@ -20,13 +20,21 @@ def load_checkpoint(checkpoint_path, model, optimizer=None):
     checkpoint_dict = torch.load(checkpoint_path, map_location="cpu")
     iteration = checkpoint_dict["iteration"]
     learning_rate = checkpoint_dict["learning_rate"]
+
+    print(checkpoint_dict.keys())
+    
     if optimizer is not None:
+        print("loading optimizer")
         optimizer.load_state_dict(checkpoint_dict["optimizer"])
+        print("loaded")
+    print(optimizer)
+
     saved_state_dict = checkpoint_dict["model"]
     if hasattr(model, "module"):
         state_dict = model.module.state_dict()
     else:
         state_dict = model.state_dict()
+    print(state_dict.keys())
     new_state_dict = {}
     for k, v in state_dict.items():
         try:
@@ -34,6 +42,7 @@ def load_checkpoint(checkpoint_path, model, optimizer=None):
         except:
             logger.info("%s is not in the checkpoint" % k)
             new_state_dict[k] = v
+    print(new_state_dict.keys())
     if hasattr(model, "module"):
         model.module.load_state_dict(new_state_dict)
     else:
@@ -178,18 +187,22 @@ def load_filepaths_and_text(filename, split="|"):
     return filepaths_and_text
 
 
-def get_hparams(init=True):
+def get_hparams(args, init=True):
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-c",
         "--config",
         type=str,
         default="./configs/base.json",
         help="JSON file for configuration",
     )
-    parser.add_argument("-m", "--model", type=str, required=True, help="Model name")
+    parser.add_argument(
+        "--model", 
+        type=str, 
+        required=True, 
+        help="Model name"
+    )
 
-    args = parser.parse_args()
+    args = parser.parse_args(args)
     model_dir = os.path.join("./logs", args.model)
 
     if not os.path.exists(model_dir):
