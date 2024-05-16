@@ -283,7 +283,7 @@ class TextAudioSpeakerLoader(torch.utils.data.Dataset):
         )
         text = self.get_text(text)
         spec, wav = self.get_audio(audiopath)
-        cond = self.get_cond(wav, self.vae_config)
+        cond = get_cond(wav, self.vae_config)
         sid = self.get_sid(sid)
         return (text, spec, wav, cond, sid)
     
