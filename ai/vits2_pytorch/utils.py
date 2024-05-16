@@ -15,6 +15,13 @@ logging.basicConfig(stream=sys.stdout, level=logging.DEBUG)
 logger = logging
 
 
+def get_available_device():
+    if torch.cuda.is_available():
+        device = torch.device("cuda:0")  # 첫 번째 CUDA 디바이스를 선택
+    else:
+        device = torch.device("cpu")
+    return device
+
 def load_checkpoint(checkpoint_path, model, optimizer=None):
     assert os.path.isfile(checkpoint_path)
     checkpoint_dict = torch.load(checkpoint_path, map_location="cpu")
