@@ -33,7 +33,9 @@ def main():
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "6060"
 
-    hps = utils.get_hparams(sys.argv[1:])
+    hps = utils.get_hparams()
+    print("hps.model_dir")
+    print(hps.model_dir)
     
     run(hps=hps)
 
@@ -182,13 +184,13 @@ def run(hps):
 
     optim_g = torch.optim.AdamW(
         net_g.parameters(),
-        hps.train.learning_rate,
+        lr=hps.train.learning_rate,
         betas=hps.train.betas,
         eps=hps.train.eps,
     )
     optim_d = torch.optim.AdamW(
         net_d.parameters(),
-        hps.train.learning_rate,
+        lr=hps.train.learning_rate,
         betas=hps.train.betas,
         eps=hps.train.eps,
     )
@@ -206,23 +208,8 @@ def run(hps):
     if net_dur_disc is not None:
         net_dur_disc = net_dur_disc.to(device)
 
-    try:
-        _, _, _, epoch_str = utils.load_checkpoint(
-            utils.latest_checkpoint_path(hps.model_dir, "G_*.pth"), net_g, optim_g
-        )
-        _, _, _, epoch_str = utils.load_checkpoint(
-            utils.latest_checkpoint_path(hps.model_dir, "D_*.pth"), net_d, optim_d
-        )
-        if net_dur_disc is not None:
-            _, _, _, epoch_str = utils.load_checkpoint(
-                utils.latest_checkpoint_path(hps.model_dir, "DUR_*.pth"),
-                net_dur_disc,
-                optim_dur_disc,
-            )
-        global_step = (epoch_str - 1) * len(train_loader)
-    except:
-        epoch_str = 1
-        global_step = 0
+    epoch_str = 1
+    global_step = 0
 
     scheduler_g = torch.optim.lr_scheduler.ExponentialLR(
         optim_g, gamma=hps.train.lr_decay, last_epoch=epoch_str - 2
@@ -272,7 +259,11 @@ def train_and_evaluate(
     if net_dur_disc is not None:
         net_dur_disc.train()
 
-    loader = tqdm.tqdm(train_loader, desc="Loading train data")
+    print("Training epoch: ", epoch)
+
+    loader = train_loader
+
+    print("loader: ", loader)
     for batch_idx, (
         x,
         x_lengths,
@@ -284,6 +275,8 @@ def train_and_evaluate(
         cond_lengths,
         speakers,
     ) in enumerate(loader):
+        print("start--------------------------")
+
         if net_g.module.use_noise_scaled_mas:
             current_mas_noise_scale = (
                 net_g.module.mas_noise_scale_initial

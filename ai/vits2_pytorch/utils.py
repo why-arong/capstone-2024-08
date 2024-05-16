@@ -41,7 +41,7 @@ def load_checkpoint(checkpoint_path, model, optimizer=None):
         state_dict = model.module.state_dict()
     else:
         state_dict = model.state_dict()
-    print(state_dict.keys())
+    
     new_state_dict = {}
     for k, v in state_dict.items():
         try:
@@ -194,22 +194,23 @@ def load_filepaths_and_text(filename, split="|"):
     return filepaths_and_text
 
 
-def get_hparams(args, init=True):
+def get_hparams(init=True):
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--config",
-        type=str,
-        default="./configs/base.json",
-        help="JSON file for configuration",
-    )
+
     parser.add_argument(
         "--model", 
         type=str, 
         required=True, 
         help="Model name"
     )
+    parser.add_argument(
+        "--config",
+        type=str,
+        default="./configs/base.json",
+        help="JSON file for configuration",
+    )
 
-    args = parser.parse_args(args)
+    args = parser.parse_args()
     model_dir = os.path.join("./logs", args.model)
 
     if not os.path.exists(model_dir):
