@@ -1,5 +1,6 @@
 
 import os
+import sys
 
 import torch
 import torch.distributed as dist
@@ -36,7 +37,7 @@ def main():
     os.environ["MASTER_ADDR"] = "localhost"
     os.environ["MASTER_PORT"] = "6060"
 
-    hps = utils.get_hparams()
+    hps = utils.get_hparams(sys.argv[1:])
     
     run(rank=0, n_gpus=n_gpus, hps=hps)
     # mp.spawn(
@@ -195,7 +196,16 @@ def run(rank, n_gpus, hps):
         noise_scale_delta=noise_scale_delta,
         **hps.model,
     ).cuda(rank)
+
+    print("Generator----------------------------------")
+    print(net_g)
+
+
     net_d = MultiPeriodDiscriminator(hps.model.use_spectral_norm).cuda(rank)
+
+    print("Discriminator----------------------------------")
+    print(net_d)
+
     optim_g = torch.optim.AdamW(
         net_g.parameters(),
         hps.train.learning_rate,
@@ -208,6 +218,7 @@ def run(rank, n_gpus, hps):
         betas=hps.train.betas,
         eps=hps.train.eps,
     )
+    
     if net_dur_disc is not None:
         optim_dur_disc = torch.optim.AdamW(
             net_dur_disc.parameters(),
