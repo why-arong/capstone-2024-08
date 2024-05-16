@@ -38,14 +38,12 @@ def get_cond(wav, path):
 
     model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
 
-    print(model)
     model = torch.load(model_path, map_location=torch.device(device))
     model.to(device) 
     model.eval()
 
-    test_audio, fs = librosa.load(wav, sr=None)
 
-    test_dataset = AudioDataset(test_audio, segment_length = segment_length, sampling_rate = sampling_rate, hop_size=hop_length, transform=ToTensor())
+    test_dataset = AudioDataset(wav, segment_length = segment_length, sampling_rate = sampling_rate, hop_size=hop_length, transform=ToTensor())
     test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle=False)
 
     latent_data = generate_latent_data(model, test_dataloader, device)
