@@ -38,7 +38,12 @@ train, val, test 파일 리스트 생성
 
 
 ```bash
+cd vits2_pytorch
 ln -s /path/to/dataset/VS DUMMY3
+
+cd sfen
+ln -s /path/to/dataset/VS DUMMY3
+
 python3 preprocess_filelist.py 
 ```
 
