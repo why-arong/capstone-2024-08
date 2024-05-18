@@ -1,6 +1,8 @@
+import os
+import pickle
 import torch
 import torch.nn as nn
-from torch.nn import functional as F
+import torch.nn.functional as F
 
 class VAE(nn.Module):
     def __init__(self, input_shape, conv_filters, conv_kernels, conv_strides, latent_space_dim):
@@ -10,15 +12,12 @@ class VAE(nn.Module):
         self.conv_kernels = conv_kernels
         self.conv_strides = conv_strides
         self.latent_space_dim = latent_space_dim
+        self.reconstruction_loss_weight = 1000000
 
-        # Encoder
         self.encoder_conv_layers = self._build_encoder_conv_layers()
-        self.flatten = nn.Flatten()
-        self.fc_mu = nn.Linear(self._get_conv_output_size(), latent_space_dim)
-        self.fc_logvar = nn.Linear(self._get_conv_output_size(), latent_space_dim)
-
-        # Decoder
-        self.fc_dec = nn.Linear(latent_space_dim, self._get_conv_output_size())
+        self.fc_mu = nn.Linear(self.encoder_conv_output_size, self.latent_space_dim)
+        self.fc_logvar = nn.Linear(self.encoder_conv_output_size, self.latent_space_dim)
+        self.decoder_fc = nn.Linear(self.latent_space_dim, self.encoder_conv_output_size)
         self.decoder_conv_layers = self._build_decoder_conv_layers()
 
     def _build_encoder_conv_layers(self):
@@ -29,6 +28,8 @@ class VAE(nn.Module):
             layers.append(nn.ReLU())
             layers.append(nn.BatchNorm2d(out_channels))
             in_channels = out_channels
+        layers.append(nn.Flatten())
+        self.encoder_conv_output_size = self._get_conv_output_size(layers)
         return nn.Sequential(*layers)
 
     def _build_decoder_conv_layers(self):
@@ -43,17 +44,16 @@ class VAE(nn.Module):
         layers.append(nn.Sigmoid())
         return nn.Sequential(*layers)
 
-    def _get_conv_output_size(self):
+    def _get_conv_output_size(self, layers):
         with torch.no_grad():
             dummy_input = torch.zeros(1, *self.input_shape)
-            dummy_output = self.encoder_conv_layers(dummy_input)
+            dummy_output = nn.Sequential(*layers)(dummy_input)
             return dummy_output.view(1, -1).size(1)
 
     def encode(self, x):
-        x = self.encoder_conv_layers(x)
-        x = self.flatten(x)
-        mu = self.fc_mu(x)
-        logvar = self.fc_logvar(x)
+        conv_out = self.encoder_conv_layers(x)
+        mu = self.fc_mu(conv_out)
+        logvar = self.fc_logvar(conv_out)
         return mu, logvar
 
     def reparameterize(self, mu, logvar):
@@ -62,7 +62,7 @@ class VAE(nn.Module):
         return mu + eps * std
 
     def decode(self, z):
-        x = self.fc_dec(z)
+        x = self.decoder_fc(z)
         x = x.view(-1, self.conv_filters[-1], self.input_shape[1] // (2 ** (len(self.conv_filters) - 1)), self.input_shape[2] // (2 ** (len(self.conv_filters) - 1)))
         x = self.decoder_conv_layers(x)
         return x
@@ -73,7 +73,7 @@ class VAE(nn.Module):
         x_recon = self.decode(z)
         return x_recon, mu, logvar
 
-def loss_function(recon_x, x, mu, logvar):
+def loss_function(recon_x, x, mu, logvar, reconstruction_loss_weight):
     BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-    return BCE + KLD
+    return reconstruction_loss_weight * BCE + KLD
