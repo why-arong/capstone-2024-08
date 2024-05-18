@@ -1,236 +1,230 @@
-# -*- coding: utf-8 -*-
-from __future__ import absolute_import, division, print_function, unicode_literals
-
-import torch
-from torch.utils.data import DataLoader
-
-from torch import optim
-
-from ai.vae.vae import VAE, loss_function
-from utils import init_test_audio, create_dataset
-
-import os, sys, argparse, time
 from pathlib import Path
+import warnings
+warnings.simplefilter(action='ignore', category=FutureWarning)
+import itertools
+import os
+import time
+import torch
+import torch.nn.functional as F
+from torch.utils.tensorboard import SummaryWriter
+from torch.utils.data import DistributedSampler, DataLoader
+from torch.distributed import init_process_group
+from torch.nn.parallel import DistributedDataParallel
+from meldataset import MelDataset, mel_spectrogram, get_dataset_filelist
+from models import MultiPeriodDiscriminator, MultiScaleDiscriminator
+from vae import VAE, feature_loss, generator_loss, discriminator_loss
+from utils import plot_spectrogram, scan_checkpoint, load_checkpoint, save_checkpoint
 
-import soundfile as sf
-import configparser
+torch.backends.cudnn.benchmark = True
 
-# Parse arguments
-parser = argparse.ArgumentParser()
-parser.add_argument('--config', type=str, default ='./default.ini' , help='path to the config file')
-args = parser.parse_args()
+def train(rank, a, h):
+    if h.num_gpus > 1:
+        init_process_group(backend=h.dist_config['dist_backend'], init_method=h.dist_config['dist_url'],
+                           world_size=h.dist_config['world_size'] * h.num_gpus, rank=rank)
 
+    torch.cuda.manual_seed(h.seed)
+    device = torch.device('cuda:{:d}'.format(rank))
 
-# Get configs
-config_path = args.config
-config = configparser.ConfigParser(allow_no_value=True)
-try: 
-  config.read(config_path)
-except FileNotFoundError:
-  print('Config File Not Found at {}'.format(config_path))
-  sys.exit()
+    vae = VAE(input_shape, conv_filters, conv_kernels, conv_strides, latent_space_dim, h).to(device)
+    mpd = MultiPeriodDiscriminator().to(device)
+    msd = MultiScaleDiscriminator().to(device)
 
+    if rank == 0:
+        print(vae)
+        os.makedirs(a.checkpoint_path, exist_ok=True)
+        print("checkpoints directory : ", a.checkpoint_path)
 
-# Import audio configs 
-sampling_rate = config['audio'].getint('sampling_rate')
-hop_length = config['audio'].getint('hop_length')
-segment_length = config['audio'].getint('segment_length')
+    if os.path.isdir(a.checkpoint_path):
+        cp_g = scan_checkpoint(a.checkpoint_path, 'g_')
+        cp_do = scan_checkpoint(a.checkpoint_path, 'do_')
 
-
-# Dataset
-dataset = Path(config['dataset'].get('data'))
-run_number = config['dataset'].getint('run_number')
-generate_test = config['dataset'].get('generate_test')    
-
-
-# Training configs
-epochs = config['training'].getint('epochs')
-learning_rate = config['training'].getfloat('learning_rate')
-batch_size = config['training'].getint('batch_size')
-checkpoint_interval = config['training'].getint('checkpoint_interval')
-save_best_model_after = config['training'].getint('save_best_model_after')
-
-
-# Model configs
-latent_dim = config['VAE'].getint('latent_dim')
-n_units = config['VAE'].getint('n_units')
-n_hidden_units = config['VAE'].getint('n_hidden_units')
-kl_beta = config['VAE'].getfloat('kl_beta')
-device = config['VAE'].get('device')
-
-
-# etc
-example_length = config['extra'].getint('example_length')
-normalize_examples = config['extra'].getboolean('normalize_examples')
-plot_model = config['extra'].getboolean('plot_model')
-
-start_time = time.time()
-config['extra']['start'] = time.asctime( time.localtime(start_time) )
-
-device = torch.device(device)
-device_name = torch.cuda.get_device_name()
-print('Device: {}'.format(device_name))
-config['VAE']['device_name'] = device_name
-
-
-# Create workspace
-run_id = run_number
-while True:
-    try:
-        run = Path('run')
-        workdir = run / '{:03d}'.format(run_id)
-        os.makedirs(workdir)
-
-        break
-    except OSError:
-        if workdir.is_dir():
-            run_id = run_id + 1
-            continue
-        raise
-
-config['dataset']['workspace'] = str(workdir.resolve())
-print("Workspace: {}".format(workdir))
-
-
-# Create the dataset
-print('creating the dataset...')
-train_dataloader, train_dataset_len = create_dataset("filelists/train.txt", segment_length, sampling_rate, hop_length, batch_size)
-validation_dataloader, val_dataset_len = create_dataset("filelists/val.txt", segment_length, sampling_rate, hop_length, batch_size)
-
-
-print("saving initial configs...")
-config_path = workdir / 'config.ini'
-with open(config_path, 'w') as configfile:
-  config.write(configfile)
-
-
-# Train
-model_dir = workdir / "model"
-checkpoint_dir = model_dir / 'checkpoints'
-os.makedirs(checkpoint_dir, exist_ok=True)
-
-log_dir = workdir / 'logs'
-os.makedirs(log_dir, exist_ok=True)
-
-if generate_test:
-  test_dataset, audio_log_dir = init_test_audio(workdir, sampling_rate, segment_length)
-  test_dataloader = DataLoader(test_dataset, batch_size = batch_size, shuffle=False)
-
-
-# Neural Network
-model = VAE(segment_length, n_units, n_hidden_units, latent_dim).to(device)
-optimizer = optim.Adam(model.parameters(), lr=learning_rate)
-# state = torch.load(Path(r'model/ckpt_00500'), map_location=torch.device(device))
-# model.load_state_dict(state['state_dict'])
-
-
-# Some dummy variables to keep track of loss situation
-train_loss_prev = 1000000
-best_loss = 1000000
-final_loss = 1000000
-
-for epoch in range(epochs):
-  
-  print('Epoch {}/{}'.format(epoch, epochs - 1))
-  print('-' * 10)
-
-  model.train()
-  train_loss = 0
-  
-  for i, data in enumerate(train_dataloader):
-    data = data.to(device)
-    optimizer.zero_grad()
-    recon_batch, mu, logvar = model(data)
-    loss = loss_function(recon_batch, data, mu, logvar, kl_beta, segment_length)
-    loss.backward()
-    train_loss += loss.item()
-    optimizer.step()
-  
-  print('====> Epoch: {} - Total loss: {} - Average loss: {:.9f}'.format(
-          epoch, train_loss, train_loss / train_dataset_len))
-  
-  if epoch % checkpoint_interval == 0 and epoch != 0: 
-    print('Checkpoint - Epoch {}'.format(epoch))
-    state = {
-      'epoch': epoch,
-      'state_dict': model.state_dict(),
-      'optimizer': optimizer.state_dict()
-    }
-    
-    # Validation
-    model.eval()
-    validation_loss = 0
-    with torch.no_grad():
-      for data in validation_dataloader:
-        data = data.to(device)
-        recon_batch, mu, logvar = model(data)
-        validation_loss += loss_function(recon_batch, data, mu, logvar, kl_beta, segment_length).item()
-
-    print('Validation loss: {:.9f}'.format(validation_loss / val_dataset_len))
-    
-    # Save checkpoint
-    torch.save(state, checkpoint_dir.joinpath('ckpt_{:05d}'.format(epoch)))
-  
-    # Save best model
-    if (train_loss < train_loss_prev) and (epoch > save_best_model_after):
-      save_path = workdir.joinpath('model').joinpath('best_model.pt')
-      torch.save(model, save_path)
-      print('Epoch {:05d}: Saved {}'.format(epoch, save_path))
-      config['training']['best_epoch'] = str(epoch)
-      best_loss = train_loss
-
-    elif (train_loss > train_loss_prev):
-      print("Average loss did not improve.")
-  
-  final_loss = train_loss
-
-print('Last Checkpoint - Epoch {}'.format(epoch))
-state = {
-  'epoch': epoch,
-  'state_dict': model.state_dict(),
-  'optimizer': optimizer.state_dict()
-}
-
-if generate_test:
-      
-  init_test = True
-  
-  for iterno, test_sample in enumerate(test_dataloader):
-    with torch.no_grad():
-      test_sample = test_sample.to(device)
-      test_pred = model(test_sample)[0]
-  
-    if init_test:
-      test_predictions = test_pred
-      init_test = False
-    
+    steps = 0
+    if cp_g is None or cp_do is None:
+        state_dict_do = None
+        last_epoch = -1
     else:
-      test_predictions = torch.cat((test_predictions, test_pred), 0)
-    
-  audio_out = audio_log_dir.joinpath('test_reconst_{:05d}.wav'.format(epochs))
-  test_predictions_np = test_predictions.view(-1).cpu().numpy()
-  sf.write( audio_out, test_predictions_np, sampling_rate)
-  print('Audio examples generated: {}'.format(audio_out))
+        state_dict_g = load_checkpoint(cp_g, device)
+        state_dict_do = load_checkpoint(cp_do, device)
+        vae.load_state_dict(state_dict_g['vae'])
+        mpd.load_state_dict(state_dict_do['mpd'])
+        msd.load_state_dict(state_dict_do['msd'])
+        steps = state_dict_do['steps'] + 1
+        last_epoch = state_dict_do['epoch']
 
-  sf.write( audio_out, test_predictions_np, sampling_rate)
-  print('Last Audio examples generated: {}'.format(audio_out))
+    if h.num_gpus > 1:
+        vae = DistributedDataParallel(vae, device_ids=[rank]).to(device)
+        mpd = DistributedDataParallel(mpd, device_ids=[rank]).to(device)
+        msd = DistributedDataParallel(msd, device_ids=[rank]).to(device)
+
+    optim_g = torch.optim.AdamW(vae.parameters(), h.learning_rate, betas=[h.adam_b1, h.adam_b2])
+    optim_d = torch.optim.AdamW(itertools.chain(msd.parameters(), mpd.parameters()),
+                                h.learning_rate, betas=[h.adam_b1, h.adam_b2])
+
+    if state_dict_do is not None:
+        optim_g.load_state_dict(state_dict_do['optim_g'])
+        optim_d.load_state_dict(state_dict_do['optim_d'])
+
+    scheduler_g = torch.optim.lr_scheduler.ExponentialLR(optim_g, gamma=h.lr_decay, last_epoch=last_epoch)
+    scheduler_d = torch.optim.lr_scheduler.ExponentialLR(optim_d, gamma=h.lr_decay, last_epoch=last_epoch)
+
+    training_filelist, validation_filelist = get_dataset_filelist(a)
+
+    trainset = MelDataset(training_filelist, h.segment_size, h.n_fft, h.num_mels,
+                          h.hop_size, h.win_size, h.sampling_rate, h.fmin, h.fmax, n_cache_reuse=0,
+                          shuffle=False if h.num_gpus > 1 else True, fmax_loss=h.fmax_for_loss, device=device,
+                          fine_tuning=a.fine_tuning, base_mels_path=a.input_mels_dir)
+
+    train_sampler = DistributedSampler(trainset) if h.num_gpus > 1 else None
+
+    train_loader = DataLoader(trainset, num_workers=h.num_workers, shuffle=False,
+                              sampler=train_sampler,
+                              batch_size=h.batch_size,
+                              pin_memory=True,
+                              drop_last=True)
+
+    if rank == 0:
+        validset = MelDataset(validation_filelist, h.segment_size, h.n_fft, h.num_mels,
+                              h.hop_size, h.win_size, h.sampling_rate, h.fmin, h.fmax, False, False, n_cache_reuse=0,
+                              fmax_loss=h.fmax_for_loss, device=device, fine_tuning=a.fine_tuning,
+                              base_mels_path=a.input_mels_dir)
+        validation_loader = DataLoader(validset, num_workers=1, shuffle=False,
+                                       sampler=None,
+                                       batch_size=1,
+                                       pin_memory=True,
+                                       drop_last=True)
+
+        sw = SummaryWriter(os.path.join(a.checkpoint_path, 'logs'))
+
+    vae.train()
+    mpd.train()
+    msd.train()
+
+    for epoch in range(max(0, last_epoch), a.training_epochs):
+        if rank == 0:
+            start = time.time()
+            print("Epoch: {}".format(epoch+1))
+
+        if h.num_gpus > 1:
+            train_sampler.set_epoch(epoch)
+
+        for i, batch in enumerate(train_loader):
+            if rank == 0:
+                start_b = time.time()
+            x, y, _, y_mel = batch
+            x = torch.autograd.Variable(x.to(device, non_blocking=True))
+            y = torch.autograd.Variable(y.to(device, non_blocking=True))
+            y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
+            y = y.unsqueeze(1)
+
+            # Forward pass through VAE
+            y_g_hat, mu, logvar = vae(x)
+            y_g_hat = y_g_hat.squeeze(1)
+            y_g_hat_mel = mel_spectrogram(y_g_hat, h.n_fft, h.num_mels, h.sampling_rate, h.hop_size, h.win_size, h.fmin, h.fmax_for_loss)
+
+            optim_d.zero_grad()
+
+            # MPD
+            y_df_hat_r, y_df_hat_g, _, _ = mpd(y, y_g_hat.detach())
+            loss_disc_f, losses_disc_f_r, losses_disc_f_g = discriminator_loss(y_df_hat_r, y_df_hat_g)
+
+            # MSD
+            y_ds_hat_r, y_ds_hat_g, _, _ = msd(y, y_g_hat.detach())
+            loss_disc_s, losses_disc_s_r, losses_disc_s_g = discriminator_loss(y_ds_hat_r, y_ds_hat_g)
+
+            loss_disc_all = loss_disc_s + loss_disc_f
+
+            loss_disc_all.backward()
+            optim_d.step()
+
+            # Generator
+            optim_g.zero_grad()
+
+            # L1 Mel-Spectrogram Loss
+            loss_mel = F.l1_loss(y_mel, y_g_hat_mel) * 45
+
+            y_df_hat_r, y_df_hat_g, fmap_f_r, fmap_f_g = mpd(y, y_g_hat)
+            y_ds_hat_r, y_ds_hat_g, fmap_s_r, fmap_s_g = msd(y, y_g_hat)
+            loss_fm_f = feature_loss(fmap_f_r, fmap_f_g)
+            loss_fm_s = feature_loss(fmap_s_r, fmap_s_g)
+            loss_gen_f, losses_gen_f = generator_loss(y_df_hat_g)
+            loss_gen_s, losses_gen_s = generator_loss(y_ds_hat_g)
+            loss_gen_all = loss_gen_s + loss_gen_f + loss_fm_s + loss_fm_f + loss_mel
+
+            loss_gen_all.backward()
+            optim_g.step()
+            
+            # VAE loss
+            loss_vae = loss_function(y_g_hat, y, mu, logvar, vae.reconstruction_loss_weight)
+            loss_vae.backward()
+            optim_g.step()
+
+            if rank == 0:
+                # STDOUT logging
+                if steps % a.stdout_interval == 0:
+                    with torch.no_grad():
+                        mel_error = F.l1_loss(y_mel, y_g_hat_mel).item()
+
+                    print('Steps : {:d}, Gen Loss Total : {:4.3f}, Mel-Spec. Error : {:4.3f}, s/b : {:4.3f}'.
+                          format(steps, loss_gen_all, mel_error, time.time() - start_b))
+
+                # checkpointing
+                if steps % a.checkpoint_interval == 0 and steps != 0:
+                    checkpoint_path = "{}/g_{:08d}".format(a.checkpoint_path, steps)
+                    save_checkpoint(checkpoint_path,
+                                    {'generator': (vae.module if h.num_gpus > 1 else vae).state_dict()})
+                    checkpoint_path = "{}/do_{:08d}".format(a.checkpoint_path, steps)
+                    save_checkpoint(checkpoint_path, 
+                                    {'mpd': (mpd.module if h.num_gpus > 1
+                                                         else mpd).state_dict(),
+                                     'msd': (msd.module if h.num_gpus > 1
+                                                         else msd).state_dict(),
+                                     'optim_g': optim_g.state_dict(), 'optim_d': optim_d.state_dict(), 'steps': steps,
+                                     'epoch': epoch})
+
+                # Tensorboard summary logging
+                if steps % a.summary_interval == 0:
+                    sw.add_scalar("training/gen_loss_total", loss_gen_all, steps)
+                    sw.add_scalar("training/mel_spec_error", mel_error, steps)
+
+                # Validation
+                if steps % a.validation_interval == 0:  # and steps != 0:
+                    vae.eval()
+                    torch.cuda.empty_cache()
+                    val_err_tot = 0
+                    with torch.no_grad():
+                        for j, batch in enumerate(validation_loader):
+                            x, y, _, y_mel = batch
+                            y_g_hat = vae(x.to(device))
+                            y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
+                            y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate,
+                                                          h.hop_size, h.win_size,
+                                                          h.fmin, h.fmax_for_loss)
+                            val_err_tot += F.l1_loss(y_mel, y_g_hat_mel).item()
+
+                            if j <= 4:
+                                if steps == 0:
+                                    sw.add_audio('gt/y_{}'.format(j), y[0], steps, h.sampling_rate)
+                                    sw.add_figure('gt/y_spec_{}'.format(j), plot_spectrogram(x[0]), steps)
+
+                                sw.add_audio('generated/y_hat_{}'.format(j), y_g_hat[0], steps, h.sampling_rate)
+                                y_hat_spec = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
+                                                             h.sampling_rate, h.hop_size, h.win_size,
+                                                             h.fmin, h.fmax)
+                                sw.add_figure('generated/y_hat_spec_{}'.format(j),
+                                              plot_spectrogram(y_hat_spec.squeeze(0).cpu().numpy()), steps)
+
+                        val_err = val_err_tot / (j+1)
+                        sw.add_scalar("validation/mel_spec_error", val_err, steps)
+
+                    vae.train()
+
+            steps += 1
+
+        scheduler_g.step()
+        scheduler_d.step()
+        
+        if rank == 0:
+            print('Time taken for epoch {} is {} sec\n'.format(epoch + 1, int(time.time() - start)))
 
 
-# Save the last model as a checkpoint dict
-torch.save(state, checkpoint_dir.joinpath('ckpt_{:05d}'.format(epochs)))
 
-if train_loss > train_loss_prev:
-  print("Final loss was not better than the last best model.")
-  print("Final Loss: {}".format(final_loss))
-  print("Best Loss: {}".format(best_loss))
-  
-  # Save the last model using torch.save 
-  save_path = workdir.joinpath('model').joinpath('last_model.pt')
-  torch.save(model, save_path)
-  print('Training Finished: Saved the last model')
-
-else:
-  print("The last model is the best model.")
-
-with open(config_path, 'w') as configfile:
-  config.write(configfile)
