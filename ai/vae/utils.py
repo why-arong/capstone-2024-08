@@ -1,5 +1,6 @@
 import os
 import torch
+import torch.nn as nn
 from torch.utils.data import DataLoader
 
 from vae.dataset import AudioDataset, TestDataset, ToTensor
@@ -73,3 +74,20 @@ def generate_latent_data(model, dataloader, device='cuda:0'):
 
     latent_data = torch.cat(latent_data, dim=0)
     return latent_data.numpy()
+
+
+# Utility functions for padding and weight normalization
+def get_padding(kernel_size, dilation):
+    return (kernel_size - 1) * dilation // 2
+
+def init_weights(m):
+    if isinstance(m, nn.Conv1d) or isinstance(m, nn.ConvTranspose1d) or isinstance(m, nn.Linear):
+        nn.init.kaiming_normal_(m.weight)
+        if m.bias is not None:
+            nn.init.zeros_(m.bias)
+
+def weight_norm(module):
+    return nn.utils.weight_norm(module)
+
+def remove_weight_norm(module):
+    return nn.utils.remove_weight_norm(module)
