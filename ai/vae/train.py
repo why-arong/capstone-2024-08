@@ -35,7 +35,7 @@ def train(rank, a, h):
     torch.cuda.manual_seed(h.seed)
     device = torch.device('cuda:{:d}'.format(rank))
 
-    vae = VAE(input_shape, conv_filters, conv_kernels, conv_strides, latent_space_dim, h).to(device)
+    vae = VAE(h).to(device)
     mpd = MultiPeriodDiscriminator().to(device)
     msd = MultiScaleDiscriminator().to(device)
 

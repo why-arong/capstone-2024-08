@@ -4,18 +4,18 @@ import torch.nn.functional as F
 
 from generator import Generator
 class VAE(nn.Module):
-    def __init__(self, input_shape, conv_filters, conv_kernels, conv_strides, latent_space_dim):
+    def __init__(self, h):
         super(VAE, self).__init__()
-        self.input_shape = input_shape
-        self.conv_filters = conv_filters
-        self.conv_kernels = conv_kernels
-        self.conv_strides = conv_strides
-        self.latent_space_dim = latent_space_dim
+        self.input_shape = h.input_shape
+        self.conv_filters = h.conv_filters
+        self.conv_kernels = h.conv_kernels
+        self.conv_strides = h.conv_strides
+        self.latent_space_dim = h.latent_space_dim
         self.reconstruction_loss_weight = 1000000
 
         self.encoder = self._build_encoder()
-        self.fc_mu = nn.Linear(self.encoder_conv_output_size, latent_space_dim)
-        self.fc_logvar = nn.Linear(self.encoder_conv_output_size, latent_space_dim)
+        self.fc_mu = nn.Linear(self.encoder_conv_output_size, h.latent_space_dim)
+        self.fc_logvar = nn.Linear(self.encoder_conv_output_size, h.latent_space_dim)
         self.decoder = self._build_decoder()
 
     def _build_encoder(self):
