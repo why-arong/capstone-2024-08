@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from utils import weight_norm, remove_weight_norm, init_weights, get_padding
+from torch.nn.utils import weight_norm, remove_weight_norm, spectral_norm
+from utils import init_weights, get_padding
 
 LRELU_SLOPE = 0.1
 

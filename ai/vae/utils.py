@@ -85,9 +85,3 @@ def init_weights(m):
         nn.init.kaiming_normal_(m.weight)
         if m.bias is not None:
             nn.init.zeros_(m.bias)
-
-def weight_norm(module):
-    return nn.utils.weight_norm(module)
-
-def remove_weight_norm(module):
-    return nn.utils.remove_weight_norm(module)

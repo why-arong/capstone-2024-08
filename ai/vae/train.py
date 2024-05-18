@@ -18,7 +18,7 @@ from torch.utils.data import DistributedSampler, DataLoader
 
 
 from meldataset import MelDataset, mel_spectrogram, get_dataset_filelist
-from models import MultiPeriodDiscriminator, MultiScaleDiscriminator
+from discriminator import MultiPeriodDiscriminator, MultiScaleDiscriminator
 from vae import VAE, feature_loss, generator_loss, discriminator_loss
 from utils import plot_spectrogram, scan_checkpoint, load_checkpoint, save_checkpoint
 
