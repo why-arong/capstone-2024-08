@@ -42,16 +42,32 @@ ln -s /path/to/dataset/VS DUMMY3
 python3 preprocess_filelist.py 
 ```
 
+<br/>
+
+# SFEN
+
 ## Train
 
 ```bash
-python3 train.py
+cd ai/sfen
+python3 train.py --config ckpt/config.json
 ```
+
+## Fine-tuning
+
+```bash
+python3 train.py --fine_tuning True --config ckpt/config.json
+```
+
+## Inference
+
+```bash
+python3 inference.py --checkpoint_file [vae checkpoint file path]
 
 ## Clustering
 
 ```bash
-python3 clustering.py --config path/to/ckpt/config.ini
+python3 clustering.py --config path/to/ckpt/config.json
 ```
 
 <br/><br/>
