@@ -8,7 +8,7 @@ import configparser
 import  sys, argparse
 sys.path.append('../vae')
 
-from dataset import AudioDataset, ToTensor
+from ai.sfen.meldataset import AudioDataset, ToTensor
 from ai.vae.vae import VAE
 from vae.utils import generate_latent_data
 
