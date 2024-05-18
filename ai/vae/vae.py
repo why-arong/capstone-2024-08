@@ -6,6 +6,8 @@ from generator import Generator
 class VAE(nn.Module):
     def __init__(self, h):
         super(VAE, self).__init__()
+
+        # TODO: Add class attributes to h
         self.input_shape = h.input_shape
         self.conv_filters = h.conv_filters
         self.conv_kernels = h.conv_kernels
