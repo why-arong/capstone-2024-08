@@ -1,87 +1,57 @@
+import glob
 import os
+import matplotlib
 import torch
-import torch.nn as nn
-from torch.utils.data import DataLoader
-
-from vae.dataset import AudioDataset, TestDataset, ToTensor
-
-import numpy as np
-import librosa
-import soundfile as sf
-
-def init_test_audio(workdir, sampling_rate, segment_length):
-  # Create a set samples to test the network as it trains
-
-  # Create a folder called reconstructions
-  audio_log_dir = workdir / 'audio_logs'
-  os.makedirs(audio_log_dir, exist_ok=True)
-
-  with open("filelists/test.txt", "r", encoding="utf-8") as test_file:
-      test_files = test_file.read().splitlines()
-
-  init = True
-  for test in test_files:
-      
-    audio_full, _ = librosa.load(test, sr=sampling_rate)
-
-    if init:
-      test_dataset_audio = audio_full
-      init = False
-    else:
-      test_dataset_audio = np.concatenate((test_dataset_audio, audio_full ),axis=0)
-  
-  # Create a dataloader for test dataset
-  test_dataset = TestDataset(test_dataset_audio, segment_length = segment_length, sampling_rate = sampling_rate, transform=ToTensor())
-  
-  sf.write(audio_log_dir.joinpath('test_original.wav'), test_dataset_audio, sampling_rate)
-  return test_dataset, audio_log_dir
+from torch.nn.utils import weight_norm
+matplotlib.use("Agg")
+import matplotlib.pylab as plt
 
 
+def plot_spectrogram(spectrogram):
+    fig, ax = plt.subplots(figsize=(10, 2))
+    im = ax.imshow(spectrogram, aspect="auto", origin="lower",
+                   interpolation='none')
+    plt.colorbar(im, ax=ax)
 
-def create_dataset(file_path, segment_length, sampling_rate, hop_length, batch_size):
-    with open(file_path, "r", encoding="utf-8") as file:
-        files = file.read().splitlines()
-    
-    audio_array = []
-    new_loop = True
+    fig.canvas.draw()
+    plt.close()
 
-    for f in files: 
-        new_array, _ = librosa.load(f, sr=sampling_rate)
-
-        if new_loop:
-            audio_array = new_array
-            new_loop = False
-        else:
-            audio_array = np.concatenate((audio_array, new_array), axis=0)
-
-    total_frames = len(audio_array) // segment_length
-    print('Total number of audio frames: {}'.format(total_frames))
-
-    dataset = AudioDataset(audio_array, segment_length=segment_length, sampling_rate=sampling_rate, hop_size=hop_length, transform=ToTensor())
-    dataloader = DataLoader(dataset, batch_size=batch_size, shuffle=True)
-    
-    return dataloader, len(dataset)
-
-# TODO: 공분산 고려해야하는지 생각해보기
-def generate_latent_data(model, dataloader, device='cuda:0'):
-    model.eval()
-    latent_data = []
-
-    with torch.no_grad():
-        for data in dataloader:
-            _, mu, _ = model.forward(data.to(device))
-            latent_data.append(mu.cpu().detach())
-
-    latent_data = torch.cat(latent_data, dim=0)
-    return latent_data.numpy()
+    return fig
 
 
-# Utility functions for padding and weight normalization
-def get_padding(kernel_size, dilation):
-    return (kernel_size - 1) * dilation // 2
+def init_weights(m, mean=0.0, std=0.01):
+    classname = m.__class__.__name__
+    if classname.find("Conv") != -1:
+        m.weight.data.normal_(mean, std)
 
-def init_weights(m):
-    if isinstance(m, nn.Conv1d) or isinstance(m, nn.ConvTranspose1d) or isinstance(m, nn.Linear):
-        nn.init.kaiming_normal_(m.weight)
-        if m.bias is not None:
-            nn.init.zeros_(m.bias)
+
+def apply_weight_norm(m):
+    classname = m.__class__.__name__
+    if classname.find("Conv") != -1:
+        weight_norm(m)
+
+
+def get_padding(kernel_size, dilation=1):
+    return int((kernel_size*dilation - dilation)/2)
+
+
+def load_checkpoint(filepath, device):
+    assert os.path.isfile(filepath)
+    print("Loading '{}'".format(filepath))
+    checkpoint_dict = torch.load(filepath, map_location=device)
+    print("Complete.")
+    return checkpoint_dict
+
+
+def save_checkpoint(filepath, obj):
+    print("Saving checkpoint to {}".format(filepath))
+    torch.save(obj, filepath)
+    print("Complete.")
+
+
+def scan_checkpoint(cp_dir, prefix):
+    pattern = os.path.join(cp_dir, prefix + '????????')
+    cp_list = glob.glob(pattern)
+    if len(cp_list) == 0:
+        return None
+    return sorted(cp_list)[-1]
