@@ -6,7 +6,7 @@ from torch.utils.data import DataLoader
 
 from torch import optim
 
-from model import VAE, loss_function
+from ai.vae.vae import VAE, loss_function
 from utils import init_test_audio, create_dataset
 
 import os, sys, argparse, time

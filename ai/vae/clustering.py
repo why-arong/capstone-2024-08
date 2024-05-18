@@ -6,7 +6,7 @@ import  sys, argparse
 
 from sklearn.cluster import KMeans
 
-from model import VAE
+from ai.vae.vae import VAE
 from utils import create_dataset, generate_latent_data
 
 

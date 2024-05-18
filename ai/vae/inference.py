@@ -9,7 +9,7 @@ import  sys, argparse
 sys.path.append('../vae')
 
 from dataset import AudioDataset, ToTensor
-from model import VAE
+from ai.vae.vae import VAE
 from vae.utils import generate_latent_data
 
 def get_cond(wav, path):
