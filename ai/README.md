@@ -45,6 +45,7 @@ python3 preprocess_filelist.py
 <br/>
 
 # SFEN
+<br/>
 
 ## Train
 
@@ -52,17 +53,21 @@ python3 preprocess_filelist.py
 cd ai/sfen
 python3 train.py --config ckpt/config.json
 ```
+<br/>
 
 ## Fine-tuning
 
 ```bash
 python3 train.py --fine_tuning True --config ckpt/config.json
 ```
+<br/>
 
 ## Inference
 
 ```bash
 python3 inference.py --checkpoint_file [vae checkpoint file path]
+```
+<br/>
 
 ## Clustering
 
@@ -70,11 +75,11 @@ python3 inference.py --checkpoint_file [vae checkpoint file path]
 python3 clustering.py --config path/to/ckpt/config.json
 ```
 
-<br/><br/>
+<br/><br/><br/>
 
----
 
 # VITS2
+<br/>
 
 ## Preprocess
 ```bash
@@ -86,12 +91,13 @@ cd ..
 python3 preprocess.py --text_index 2 --filelists filelists/loro_audio_sid_text_train_filelist.txt filelists/loro_audio_sid_text_val_filelist.txt filelists/loro_audio_sid_text_test_filelist.txt
 
 ```
-
+<br/>
 
 ## Train
 ```bash
 python3 train_ms.py -c configs/vits2_loro_base.json -m loro 
 ```
+<br/>
 
 ## Inference
 ```bash
