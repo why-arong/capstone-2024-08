@@ -3,50 +3,77 @@ import torch.nn as nn
 from torch.nn import functional as F
 
 class VAE(nn.Module):
-  def __init__(self, segment_length, n_units, n_hidden_units, latent_dim):
-      super(VAE, self).__init__()
+    def __init__(self, input_shape, conv_filters, conv_kernels, conv_strides, latent_space_dim):
+        super(VAE, self).__init__()
+        self.input_shape = input_shape
+        self.conv_filters = conv_filters
+        self.conv_kernels = conv_kernels
+        self.conv_strides = conv_strides
+        self.latent_space_dim = latent_space_dim
 
-      self.segment_length = segment_length
-      self.n_units = n_units
-      self.latent_dim = latent_dim
+        # Encoder
+        self.encoder_conv_layers = self._build_encoder_conv_layers()
+        self.flatten = nn.Flatten()
+        self.fc_mu = nn.Linear(self._get_conv_output_size(), latent_space_dim)
+        self.fc_logvar = nn.Linear(self._get_conv_output_size(), latent_space_dim)
 
-      self.fc1 = nn.Linear(segment_length, n_units)
-      self.fc2 = nn.Linear(n_units, n_hidden_units)
-      self.fc3 = nn.Linear(n_hidden_units, latent_dim)
-      self.fc4 = nn.Linear(n_hidden_units, latent_dim)
+        # Decoder
+        self.fc_dec = nn.Linear(latent_space_dim, self._get_conv_output_size())
+        self.decoder_conv_layers = self._build_decoder_conv_layers()
 
-      self.fc5 = nn.Linear(latent_dim, n_hidden_units)
-      self.fc6 = nn.Linear(n_hidden_units, n_units)
-      self.fc7 = nn.Linear(n_units, segment_length)
+    def _build_encoder_conv_layers(self):
+        layers = []
+        in_channels = self.input_shape[0]
+        for out_channels, kernel_size, stride in zip(self.conv_filters, self.conv_kernels, self.conv_strides):
+            layers.append(nn.Conv2d(in_channels, out_channels, kernel_size, stride, padding=1))
+            layers.append(nn.ReLU())
+            layers.append(nn.BatchNorm2d(out_channels))
+            in_channels = out_channels
+        return nn.Sequential(*layers)
 
-  def encode(self, x):
-      h1 = F.relu(self.fc1(x))
-      h2 = F.relu(self.fc2(h1))
-      return self.fc3(h2), self.fc4(h2)
+    def _build_decoder_conv_layers(self):
+        layers = []
+        in_channels = self.conv_filters[-1]
+        for out_channels, kernel_size, stride in zip(reversed(self.conv_filters[:-1]), reversed(self.conv_kernels[:-1]), reversed(self.conv_strides[:-1])):
+            layers.append(nn.ConvTranspose2d(in_channels, out_channels, kernel_size, stride, padding=1))
+            layers.append(nn.ReLU())
+            layers.append(nn.BatchNorm2d(out_channels))
+            in_channels = out_channels
+        layers.append(nn.ConvTranspose2d(in_channels, self.input_shape[0], self.conv_kernels[0], self.conv_strides[0], padding=1))
+        layers.append(nn.Sigmoid())
+        return nn.Sequential(*layers)
 
-  def reparameterize(self, mu, logvar):
-      std = torch.exp(0.5 * logvar)
-      eps = torch.randn_like(std)
-      return mu + eps * std
+    def _get_conv_output_size(self):
+        with torch.no_grad():
+            dummy_input = torch.zeros(1, *self.input_shape)
+            dummy_output = self.encoder_conv_layers(dummy_input)
+            return dummy_output.view(1, -1).size(1)
 
-  def decode(self, z):
-      h3 = F.relu(self.fc5(z))
-      h4 = F.relu(self.fc6(h3))
-      return F.tanh(self.fc7(h4))
+    def encode(self, x):
+        x = self.encoder_conv_layers(x)
+        x = self.flatten(x)
+        mu = self.fc_mu(x)
+        logvar = self.fc_logvar(x)
+        return mu, logvar
 
-  def forward(self, x):
-      mu, logvar = self.encode(x.view(-1, self.segment_length))
-      z = self.reparameterize(mu, logvar)
-      return self.decode(z), mu, logvar
+    def reparameterize(self, mu, logvar):
+        std = torch.exp(0.5 * logvar)
+        eps = torch.randn_like(std)
+        return mu + eps * std
 
-# Reconstruction + KL divergence losses summed over all elements and batch
-def loss_function(recon_x, x, mu, logvar, kl_beta, segment_length):
-  recon_loss = F.mse_loss(recon_x, x.view(-1, segment_length))
+    def decode(self, z):
+        x = self.fc_dec(z)
+        x = x.view(-1, self.conv_filters[-1], self.input_shape[1] // (2 ** (len(self.conv_filters) - 1)), self.input_shape[2] // (2 ** (len(self.conv_filters) - 1)))
+        x = self.decoder_conv_layers(x)
+        return x
 
-  # see Appendix B from VAE paper:
-  # Kingma and Welling. Auto-Encoding Variational Bayes. ICLR, 2014
-  # https://arxiv.org/abs/1312.6114
-  # 0.5 * sum(1 + log(sigma^2) - mu^2 - sigma^2)
-  KLD = -0.5 * torch.mean(1 + logvar - mu.pow(2) - logvar.exp())
+    def forward(self, x):
+        mu, logvar = self.encode(x)
+        z = self.reparameterize(mu, logvar)
+        x_recon = self.decode(z)
+        return x_recon, mu, logvar
 
-  return recon_loss + ( kl_beta * KLD)
+def loss_function(recon_x, x, mu, logvar):
+    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
+    KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
+    return BCE + KLD
