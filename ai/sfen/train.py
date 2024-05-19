@@ -18,9 +18,9 @@ from torch.utils.data import DistributedSampler, DataLoader
 
 
 from meldataset import MelDataset, mel_spectrogram
-from discriminator import MultiPeriodDiscriminator, MultiScaleDiscriminator
-from vae import VAE
-from loss import feature_loss, generator_loss, discriminator_loss, loss_function
+from model.discriminator import MultiPeriodDiscriminator, MultiScaleDiscriminator
+from model.vae import VAE
+from model.loss import feature_loss, generator_loss, discriminator_loss, loss_function
 from utils import plot_spectrogram, scan_checkpoint, load_checkpoint, save_checkpoint, get_dataset_filelist
 
 
@@ -118,6 +118,7 @@ def train(rank, a, h):
         if h.num_gpus > 1:
             train_sampler.set_epoch(epoch)
 
+        # batch = (mel.squeeze(), audio.squeeze(0), filename, mel_loss.squeeze())
         for i, batch in enumerate(train_loader):
             if rank == 0:
                 start_b = time.time()
