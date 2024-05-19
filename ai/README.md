@@ -38,18 +38,72 @@ train, val, test 파일 리스트 생성
 
 
 ```bash
-ln -s /path/to/dataset/VL DUMMY3
+cd vits2_pytorch
+ln -s /path/to/dataset/VS DUMMY3
+
+cd sfen
+ln -s /path/to/dataset/VS DUMMY3
+
 python3 preprocess_filelist.py 
 ```
+
+<br/>
+
+# SFEN
+<br/>
 
 ## Train
 
 ```bash
-python3 train.py
+cd ai/sfen
+python3 train.py --config ckpt/config.json
 ```
+<br/>
+
+## Fine-tuning
+
+```bash
+python3 train.py --fine_tuning True --config ckpt/config.json
+```
+<br/>
+
+## Inference
+
+```bash
+python3 inference.py --checkpoint_file [vae checkpoint file path]
+```
+<br/>
 
 ## Clustering
 
 ```bash
-python3 clustering.py --config path/to/ckpt/config.ini
+python3 clustering.py --config path/to/ckpt/config.json
+```
+
+<br/><br/><br/>
+
+
+# VITS2
+<br/>
+
+## Preprocess
+```bash
+
+cd monotonic_align
+python setup.py build_ext --inplace
+
+cd ..
+python3 preprocess.py --text_index 2 --filelists filelists/loro_audio_sid_text_train_filelist.txt filelists/loro_audio_sid_text_val_filelist.txt filelists/loro_audio_sid_text_test_filelist.txt
+
+```
+<br/>
+
+## Train
+```bash
+python3 train_ms.py -c configs/vits2_loro_base.json -m loro 
+```
+<br/>
+
+## Inference
+```bash
 ```
