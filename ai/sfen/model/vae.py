@@ -13,7 +13,7 @@ class VAE(nn.Module):
         self.conv_kernels = h.conv_kernels
         self.conv_strides = h.conv_strides
         self.latent_space_dim = h.latent_space_dim
-        self.reconstruction_loss_weight = 1000000
+        self.reconstruction_loss_weight = h.lambda_sf
 
         self.encoder = self._build_encoder()
         self.fc_mu = nn.Linear(self.encoder_conv_output_size, h.latent_space_dim)
