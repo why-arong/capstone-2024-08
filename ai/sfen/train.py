@@ -20,7 +20,7 @@ from torch.utils.data import DistributedSampler, DataLoader
 from meldataset import MelDataset, mel_spectrogram
 from model.discriminator import MultiPeriodDiscriminator, MultiScaleDiscriminator
 from model.vae import VAE
-from model.loss import feature_loss, generator_loss, discriminator_loss, loss_function
+from model.loss import feature_loss, generator_loss, discriminator_loss, vae_loss
 from utils import plot_spectrogram, scan_checkpoint, load_checkpoint, save_checkpoint, get_dataset_filelist
 
 
@@ -166,7 +166,7 @@ def train(rank, a, h):
             optim_g.step()
             
             # VAE loss
-            loss_vae = loss_function(y_g_hat, y, mu, logvar, vae.reconstruction_loss_weight)
+            loss_vae = vae_loss(y_g_hat, y, mu, logvar, vae.reconstruction_loss_weight)
             loss_vae.backward()
             optim_g.step()
 
