@@ -38,7 +38,7 @@ train, val, test 파일 리스트 생성
 
 
 ```bash
-ln -s /path/to/dataset/VL DUMMY3
+ln -s /path/to/dataset/VS DUMMY3
 python3 preprocess_filelist.py 
 ```
 
@@ -52,4 +52,31 @@ python3 train.py
 
 ```bash
 python3 clustering.py --config path/to/ckpt/config.ini
+```
+
+<br/><br/>
+
+---
+
+# VITS2
+
+## Preprocess
+```bash
+
+cd monotonic_align
+python setup.py build_ext --inplace
+
+cd ..
+python3 preprocess.py --text_index 2 --filelists filelists/loro_audio_sid_text_train_filelist.txt filelists/loro_audio_sid_text_val_filelist.txt filelists/loro_audio_sid_text_test_filelist.txt
+
+```
+
+
+## Train
+```bash
+python3 train_ms.py -c configs/vits2_loro_base.json -m loro 
+```
+
+## Inference
+```bash
 ```
