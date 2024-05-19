@@ -3,10 +3,9 @@ import torch.nn.functional as F
 
 
 def vae_loss(recon_x, x, mu, logvar, reconstruction_loss_weight):
-    BCE = F.binary_cross_entropy(recon_x, x, reduction='sum')
+    L1_loss = F.l1_loss(recon_x, x, reduction='sum')
     KLD = -0.5 * torch.sum(1 + logvar - mu.pow(2) - logvar.exp())
-    return reconstruction_loss_weight * BCE + KLD
-
+    return reconstruction_loss_weight * L1_loss + KLD
 
 
 def feature_loss(fmap_r, fmap_g):

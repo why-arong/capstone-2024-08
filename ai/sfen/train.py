@@ -151,8 +151,8 @@ def train(rank, a, h):
             # Generator
             optim_g.zero_grad()
 
-            # L1 Mel-Spectrogram Loss
-            loss_mel = F.l1_loss(y_mel, y_g_hat_mel) * 45
+            # L1 Mel-Spectrogram Loss, KL Divergence Loss
+            loss_mel = vae_loss(y_g_hat_mel, y_mel, mu, logvar, vae.reconstruction_loss_weight)  # Using mel spectrograms for VAE loss
 
             y_df_hat_r, y_df_hat_g, fmap_f_r, fmap_f_g = mpd(y, y_g_hat)
             y_ds_hat_r, y_ds_hat_g, fmap_s_r, fmap_s_g = msd(y, y_g_hat)
@@ -166,9 +166,6 @@ def train(rank, a, h):
             optim_g.step()
             
             # VAE loss
-            loss_vae = vae_loss(y_g_hat, y, mu, logvar, vae.reconstruction_loss_weight)
-            loss_vae.backward()
-            optim_g.step()
 
             if rank == 0:
                 # STDOUT logging
