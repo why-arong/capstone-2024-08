@@ -8,7 +8,7 @@ import torch
 from scipy.io.wavfile import write
 from env import AttrDict
 from meldataset import mel_spectrogram, MAX_WAV_VALUE, load_wav
-from vae import VAE
+from ai.sfen.model.vae import VAE
 
 h = None
 device = None

@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from generator import Generator
+from ai.sfen.model.generator import Generator
 class VAE(nn.Module):
     def __init__(self, h):
         super(VAE, self).__init__()
