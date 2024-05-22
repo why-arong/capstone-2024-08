@@ -52,9 +52,11 @@ Project is created with:
 
 ---
 
-## Resources
 
-<a href="./resources/poster.svg" download="캡스톤8조.svg">포스터</a>
-
-
-# ㅇ
+<h1>Download Course Documents</h1>
+    <ul>
+        <li><a href=".resources/cd_midterm-report.docx" download="cd_midterm-report.docx">Download Midterm Report</a></li>
+        <li><a href="./resources/cd_midterm_ppt.pdf" download="cd_midterm_presentation.pdf">Download Midterm Presentation</a></li>
+        <li><a href="./resources/cd_final_ppt.pdf" download="cd_final_presentation.pdf">Download Final Presentation</a></li>
+        <li><a href="./resources/poster.svg" download="poster.svg">Download Poster</a></li>
+    </ul>
