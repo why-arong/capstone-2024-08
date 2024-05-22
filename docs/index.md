@@ -53,9 +53,8 @@ Project is created with:
 ---
 
 ## Resources
+
 <a href="./resources/poster.svg" download="캡스톤8조.svg">포스터</a>
 
-- [중간 보고서](./resources/cd_midterm-report.docx)
-- [중간 발표](./resources/cd_midterm_ppt.pdf)
-- [최종 발표](./resources/cd_final_ppt.pdf)
-- [포스터](./resources/poster.svg)
+
+# ㅇ
