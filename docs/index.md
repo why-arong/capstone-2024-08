@@ -20,6 +20,12 @@
 
 ---
 
+## Poster
+
+![Poster](./resources/capstone-08-final-poster.png)
+
+---
+
 ## Architecture
 
 ![Architecture](./resources/capstone-08-architecture.png)
