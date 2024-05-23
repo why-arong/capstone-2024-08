@@ -14,15 +14,21 @@
 
 ## General Intro
 
-- 프로젝트 지속기간 : 2024.02 ~
-- 배포 링크 :
-- 시연 영상 :
+- 프로젝트 지속기간 : 2024.02 ~ 2024.05
+- 배포 링크 : 
+- 시연 영상 : 
+
+---
+
+## Poster
+
+![Poster](./resources/capstone-08-final-poster.png)
 
 ---
 
 ## Architecture
 
-![Architecture](https://github.com/kookmin-sw/capstone-2024-08/assets/66212424/2e998c82-ff8d-43ce-89a1-ef2768c68d1c)
+![Architecture](./resources/capstone-08-architecture.png)
 
 ---
 
@@ -56,5 +62,5 @@ Project is created with:
 
 - [중간 보고서](./resources/cd_midterm-report.docx)
 - [중간 발표](./resources/cd_midterm_ppt.pdf)
-- [최종 발표](./resources/cd_final_ppt.pdf)
-- [포스터](./resources/poster.svg)
+- [최종 발표](./resources/capstone-08-final-pt.pdf)
+- [포스터](./resources/capstone-08-final-poster.svg)
