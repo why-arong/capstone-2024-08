@@ -16,7 +16,7 @@
 
 - 프로젝트 지속기간 : 2024.02 ~ 2024.05
 - 배포 링크 : 
-- 시연 영상 : 
+- 시연 영상 :  
 
 ---
 
@@ -63,4 +63,5 @@ Project is created with:
 - [중간 보고서](./resources/cd_midterm-report.docx)
 - [중간 발표](./resources/cd_midterm_ppt.pdf)
 - [최종 발표](./resources/capstone-08-final-pt.pdf)
+- [수행결과보고서](./resources/capstone-08-final-report.pdf)
 - [포스터](./resources/capstone-08-final-poster.svg)
