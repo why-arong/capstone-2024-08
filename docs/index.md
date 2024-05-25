@@ -12,9 +12,8 @@
 
 ---
 
-## General Intro
+## Demo
 
-- 프로젝트 지속기간 : 2024.02 ~ 2024.05
 - 시연 영상 링크 :  [https://www.youtube.com/watch?v=e1HEo-PZgQ8&feature=youtu.be](https://www.youtube.com/watch?v=e1HEo-PZgQ8&feature=youtu.be)
 
 ---
